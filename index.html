@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>App with Carousel</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .carousel {
+        scroll-snap-type: x mandatory;
+        overflow-x: scroll;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .carousel::-webkit-scrollbar {
+        display: none;
+      }
+      .carousel-item {
+        scroll-snap-align: center;
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body class="relative h-screen bg-gray-100 flex items-center justify-center">
+    <div class="carousel flex w-full max-w-xs space-x-4 px-8 py-6">
+      <a
+        href="recipes.html"
+        class="carousel-item bg-green-500 text-white w-64 h-64 flex items-center justify-center rounded-lg shadow-lg"
+      >
+        <p class="text-xl font-bold">Start Cooking</p>
+      </a>
+
+      <a
+        href="grocery.html"
+        class="carousel-item bg-blue-500 text-white w-64 h-64 flex items-center justify-center rounded-lg shadow-lg"
+      >
+        <p class="text-xl font-bold">Grocery List</p>
+      </a>
+
+      <a
+        href="inventory.html"
+        class="carousel-item bg-purple-500 text-white w-64 h-64 flex items-center justify-center rounded-lg shadow-lg"
+      >
+        <p class="text-xl font-bold">Inventory</p>
+      </a>
+    </div>
+
+    <div class="fixed bottom-0 w-full bg-gray-800">
+      <div class="flex justify-center items-center p-4">
+        <div class="flex space-x-8 text-gray-400">
+          <a href="index.html" class="px-4 py-2">
+            <img src="images/hom.png" alt="Home" class="h-8 w-8" />
+          </a>
+          <a href="recipes.html" class="px-4 py-2">
+            <img src="images/recie.png" alt="Recipes" class="h-8 w-8" />
+          </a>
+          <a href="grocery.html" class="px-4 py-2">
+            <img src="images/cat.png" alt="To Do" class="h-8 w-8" />
+          </a>
+          <a href="profile.html" class="px-4 py-2">
+            <img src="images/profle.jpg" alt="Profile" class="h-8 w-8" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Optional: Add swipe gesture support using a simple touch handler
+      const carousel = document.querySelector(".carousel");
+      let isDown = false;
+      let startX;
+      let scrollLeft;
+
+      carousel.addEventListener("mousedown", (e) => {
+        isDown = true;
+        startX = e.pageX - carousel.offsetLeft;
+        scrollLeft = carousel.scrollLeft;
+      });
+
+      carousel.addEventListener("mouseleave", () => {
+        isDown = false;
+      });
+
+      carousel.addEventListener("mouseup", () => {
+        isDown = false;
+      });
+
+      carousel.addEventListener("mousemove", (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - carousel.offsetLeft;
+        const walk = (x - startX) * 3; //scroll-fast
+        carousel.scrollLeft = scrollLeft - walk;
+      });
+    </script>
+  </body>
+</html>
