@@ -12,7 +12,7 @@
     <!-- Set Global Font to Courier New -->
     <style>
       body {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: "Courier New", Courier, monospace;
       }
       .custom-hr {
         border-top: 2px solid #333;
@@ -36,7 +36,10 @@
         pointer-events: none;
         opacity: 0.5;
       }
-      .minus-btn, .plus-btn, .edit-btn, .trash-btn {
+      .minus-btn,
+      .plus-btn,
+      .edit-btn,
+      .trash-btn {
         width: 20%;
         text-align: center;
       }
@@ -84,13 +87,15 @@
         text-align: center;
         transition: background-color 0.2s;
         width: 100%;
-        text-align: center;
+        z-index: 1; /* Lower than modals */
       }
       .sticky-checkout-button:hover {
         background-color: #2563eb;
       }
       #ingredient-list {
-        max-height: calc(100vh - 300px); /* Increased to ensure last item is visible above button */
+        max-height: calc(
+          100vh - 300px
+        ); /* Increased to ensure last item is visible above button */
         overflow-y: auto;
         padding-bottom: 1rem;
       }
@@ -107,6 +112,25 @@
       }
       .modal-overlay {
         z-index: 50;
+      }
+      .close-button {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background-color: #e3342f;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 1.5rem;
+        height: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close-button:hover {
+        background-color: #cc1f1a;
       }
     </style>
 
@@ -126,8 +150,11 @@
         const countValue = parseInt(countInput.value) || 1;
 
         if (ingredientValue && countValue) {
-          const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-          const duplicate = ingredients.some(ingredient => ingredient.name.toLowerCase() === ingredientValue);
+          const ingredients =
+            JSON.parse(localStorage.getItem("groceries")) || [];
+          const duplicate = ingredients.some(
+            (ingredient) => ingredient.name.toLowerCase() === ingredientValue
+          );
 
           if (duplicate) {
             alert("This item is already in the grocery list.");
@@ -144,7 +171,12 @@
             updateIngredientInLocalStorage(editId, ingredientValue, countValue);
           } else {
             const newId = Date.now();
-            const ingredient = { id: newId, name: ingredientValue, count: countValue, crossedOff: false };
+            const ingredient = {
+              id: newId,
+              name: ingredientValue,
+              count: countValue,
+              crossedOff: false,
+            };
             saveIngredientToLocalStorage(ingredient);
 
             const newIngredientHtml = renderIngredient(ingredient);
@@ -161,17 +193,17 @@
         const crossedClass = crossedOff ? "crossed-off" : "";
         const disabledControls = crossedOff ? "disabled-controls" : "";
         return `
-          <div id="ingredient-${id}" class="bg-white ingredient-item rounded-lg shadow mt-2 ${crossedClass}" onclick="toggleCrossOff(${id})">
-            <span class="text-gray-800 font-medium ingredient-name">${name}</span>
-            <div class="controls ${disabledControls}">
-              <button class="bg-gray-300 text-gray-700 button-small rounded hover:bg-gray-400 minus-btn" onclick="decrementCount(${id}); event.stopPropagation();">-</button>
-              <span id="count-${id}" class="text-gray-800 font-semibold count-display">${count}</span>
-              <button class="bg-gray-300 text-gray-700 button-small rounded hover:bg-gray-400 plus-btn" onclick="incrementCount(${id}); event.stopPropagation();">+</button>
-              <button class="soft-orange text-white button-small rounded hover:bg-[#ea7d3a] edit-btn" onclick="openEditModal(${id}); event.stopPropagation();">Edit</button>
-              <button class="bg-red-500 text-white button-small rounded hover:bg-red-600 trash-btn" onclick="deleteIngredient(${id}); event.stopPropagation();">Remove</button>
-            </div>
+        <div id="ingredient-${id}" class="bg-white ingredient-item rounded-lg shadow mt-2 ${crossedClass}" onclick="toggleCrossOff(${id})">
+          <span class="text-gray-800 font-medium ingredient-name">${name}</span>
+          <div class="controls ${disabledControls}">
+            <button class="bg-gray-300 text-gray-700 button-small rounded hover:bg-gray-400 minus-btn" onclick="decrementCount(${id}); event.stopPropagation();">-</button>
+            <span id="count-${id}" class="text-gray-800 font-semibold count-display">${count}</span>
+            <button class="bg-gray-300 text-gray-700 button-small rounded hover:bg-gray-400 plus-btn" onclick="incrementCount(${id}); event.stopPropagation();">+</button>
+            <button class="soft-orange text-white button-small rounded hover:bg-[#ea7d3a] edit-btn" onclick="openEditModal(${id}); event.stopPropagation();">Edit</button>
+            <button class="bg-red-500 text-white button-small rounded hover:bg-red-600 trash-btn" onclick="deleteIngredient(${id}); event.stopPropagation();">Remove</button>
           </div>
-        `;
+        </div>
+      `;
       }
 
       function saveIngredientToLocalStorage(ingredient) {
@@ -183,14 +215,24 @@
       function loadIngredients() {
         const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
         const ingredientList = document.getElementById("ingredient-list");
-        ingredients.forEach(ingredient => {
-          ingredientList.insertAdjacentHTML("beforeend", renderIngredient(ingredient));
+        ingredients.forEach((ingredient) => {
+          ingredientList.insertAdjacentHTML(
+            "beforeend",
+            renderIngredient(ingredient)
+          );
         });
       }
 
-      function updateIngredientInLocalStorage(id, name, count, crossedOff = false) {
+      function updateIngredientInLocalStorage(
+        id,
+        name,
+        count,
+        crossedOff = false
+      ) {
         const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        const index = ingredients.findIndex(ingredient => ingredient.id === id);
+        const index = ingredients.findIndex(
+          (ingredient) => ingredient.id === id
+        );
         if (index !== -1) {
           ingredients[index].name = name;
           ingredients[index].count = count;
@@ -202,10 +244,14 @@
       function toggleCrossOff(id) {
         const ingredientElem = document.getElementById(`ingredient-${id}`);
         ingredientElem.classList.toggle("crossed-off");
-        ingredientElem.querySelector(".controls").classList.toggle("disabled-controls");
+        ingredientElem
+          .querySelector(".controls")
+          .classList.toggle("disabled-controls");
 
         const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        const index = ingredients.findIndex(ingredient => ingredient.id === id);
+        const index = ingredients.findIndex(
+          (ingredient) => ingredient.id === id
+        );
         if (index !== -1) {
           ingredients[index].crossedOff = !ingredients[index].crossedOff;
           localStorage.setItem("groceries", JSON.stringify(ingredients));
@@ -231,7 +277,9 @@
 
       function updateCountInLocalStorage(id, count) {
         const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        const index = ingredients.findIndex(ingredient => ingredient.id === id);
+        const index = ingredients.findIndex(
+          (ingredient) => ingredient.id === id
+        );
         if (index !== -1) {
           ingredients[index].count = count;
           localStorage.setItem("groceries", JSON.stringify(ingredients));
@@ -241,37 +289,47 @@
       function openEditModal(id) {
         editMode = true;
         editId = id;
-        const ingredientName = document.querySelector(`#ingredient-${id} .ingredient-name`).innerText;
-        const ingredientCount = document.getElementById(`count-${id}`).innerText;
+        const ingredientName = document.querySelector(
+          `#ingredient-${id} .ingredient-name`
+        ).innerText;
+        const ingredientCount = document.getElementById(
+          `count-${id}`
+        ).innerText;
 
         document.getElementById("edit-ingredient-name").value = ingredientName;
-        document.getElementById("edit-ingredient-count").value = ingredientCount;
-        document.querySelector(".sticky-checkout-button").style.zIndex = "-1";
+        document.getElementById("edit-ingredient-count").value =
+          ingredientCount;
+        document.querySelector(".sticky-checkout-button").style.zIndex = "1";
         document.getElementById("edit-modal").classList.remove("hidden");
       }
 
       function openCheckoutModal() {
-        document.querySelector(".sticky-checkout-button").style.zIndex = "-1";
+        document.querySelector(".sticky-checkout-button").style.zIndex = "1";
         document.getElementById("checkout-modal").classList.remove("hidden");
       }
 
       function closeModal() {
         document.getElementById("edit-modal").classList.add("hidden");
         document.getElementById("checkout-modal").classList.add("hidden");
-        document.querySelector(".sticky-checkout-button").style.zIndex = "1";
         editMode = false;
       }
 
       function saveIngredient() {
-        const name = document.getElementById("edit-ingredient-name").value.trim();
-        const count = parseInt(document.getElementById("edit-ingredient-count").value);
+        const name = document
+          .getElementById("edit-ingredient-name")
+          .value.trim();
+        const count = parseInt(
+          document.getElementById("edit-ingredient-count").value
+        );
 
         if (!name || count < 1) {
           alert("Please enter a valid ingredient and quantity.");
           return;
         }
 
-        document.querySelector(`#ingredient-${editId} .ingredient-name`).innerText = name;
+        document.querySelector(
+          `#ingredient-${editId} .ingredient-name`
+        ).innerText = name;
         document.getElementById(`count-${editId}`).innerText = count;
 
         updateIngredientInLocalStorage(editId, name, count);
@@ -281,49 +339,138 @@
       function deleteIngredient(id) {
         document.getElementById(`ingredient-${id}`).remove();
         let ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        ingredients = ingredients.filter(ingredient => ingredient.id !== id);
+        ingredients = ingredients.filter((ingredient) => ingredient.id !== id);
         localStorage.setItem("groceries", JSON.stringify(ingredients));
       }
 
       function clearCheckedItems() {
         let ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        ingredients = ingredients.filter(ingredient => !ingredient.crossedOff);
+        ingredients = ingredients.filter(
+          (ingredient) => !ingredient.crossedOff
+        );
         localStorage.setItem("groceries", JSON.stringify(ingredients));
         document.getElementById("ingredient-list").innerHTML = "";
         loadIngredients();
         closeModal();
       }
+
+      // Recipe Search Functionality
+      function openRecipeSearch() {
+        document
+          .getElementById("recipe-search-modal")
+          .classList.remove("hidden");
+      }
+
+      function closeRecipeSearch() {
+        document.getElementById("recipe-search-modal").classList.add("hidden");
+        document.getElementById("recipe-input").value = "";
+        document.getElementById("dietary-filter").value = "";
+        document.getElementById("recipe-results").innerHTML = "";
+      }
+
+      function searchRecipes() {
+        const query = document.getElementById("recipe-input").value.trim();
+        const dietaryRestriction =
+          document.getElementById("dietary-filter").value;
+
+        if (query) {
+          // Sample data for recipe search results
+          const sampleRecipes = [
+            {
+              name: "Vegan Salad",
+              ingredients: ["lettuce", "tomatoes", "cucumber"],
+            },
+            {
+              name: "Gluten-Free Pancakes",
+              ingredients: ["gluten-free flour", "eggs", "milk"],
+            },
+          ];
+
+          const resultsContainer = document.getElementById("recipe-results");
+          resultsContainer.innerHTML = sampleRecipes
+            .map(
+              (recipe) => `
+              <div class="bg-gray-100 p-2 my-2 rounded shadow">
+                <p><strong>${recipe.name}</strong></p>
+                <button class="bg-green-500 text-white p-2 rounded mt-1" onclick='addRecipeIngredients(${JSON.stringify(
+                  recipe.ingredients
+                )})'>Add Ingredients to Grocery List</button>
+              </div>
+            `
+            )
+            .join("");
+        } else {
+          alert("Please enter a recipe name.");
+        }
+      }
+
+      function addRecipeIngredients(ingredients) {
+        ingredients.forEach((ingredient) => {
+          const ingredientItem = {
+            id: Date.now() + Math.random(),
+            name: ingredient,
+            count: 1,
+            crossedOff: false,
+          };
+
+          // Save to local storage and update UI
+          saveIngredientToLocalStorage(ingredientItem);
+          const ingredientList = document.getElementById("ingredient-list");
+          ingredientList.insertAdjacentHTML(
+            "afterbegin",
+            renderIngredient(ingredientItem)
+          );
+        });
+      }
     </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-6">
-    <!-- Header with Grocery List Title -->
-    <div class="flex flex-col items-center mb-4 space-y-2">
+    <!-- Header with Grocery List Title and Recipe Search Button -->
+    <div class="flex justify-between mb-4">
       <h1 class="text-3xl font-semibold">Grocery Shopping List</h1>
-      <div class="flex items-center space-x-2 w-full max-w-lg">
-        <input
-          type="text"
-          id="ingredient-input"
-          placeholder="Enter Ingredient..."
-          class="w-3/5 p-2 border border-gray-300 rounded text-sm"
-          onkeydown="if (event.key === 'Enter') addIngredient();"
-        />
-        <input
-          type="number"
-          id="count-input"
-          min="1"
-          value="1"
-          class="w-1/5 p-2 border border-gray-300 rounded text-sm"
-          onkeydown="if (event.key === 'Enter') addIngredient();"
-        />
-        <button
-          class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
-          onclick="addIngredient()"
+      <button
+        class="bg-blue-500 text-white p-2 rounded-full shadow hover:bg-blue-600"
+        onclick="openRecipeSearch()"
+      >
+        Search Recipes
+      </button>
+    </div>
+
+    <div class="flex items-center space-x-2 w-full max-w-lg mb-4">
+      <input
+        type="text"
+        id="ingredient-input"
+        placeholder="Enter Ingredient..."
+        class="w-3/5 p-2 border border-gray-300 rounded text-sm"
+        onkeydown="if (event.key === 'Enter') addIngredient();"
+      />
+      <input
+        type="number"
+        id="count-input"
+        min="1"
+        value="1"
+        class="w-1/5 p-2 border border-gray-300 rounded text-sm"
+        onkeydown="if (event.key === 'Enter') addIngredient();"
+      />
+      <button
+        class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
+        onclick="addIngredient()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
-      </div>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+      </button>
     </div>
 
     <!-- Horizontal Bar -->
@@ -334,60 +481,177 @@
       <!-- Dynamically added ingredients will appear here -->
     </div>
 
+    <!-- Recipe Search Modal -->
+    <div
+      id="recipe-search-modal"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden"
+      style="z-index: 50"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative">
+        <button class="close-button" onclick="closeRecipeSearch()">✕</button>
+        <h2 class="text-2xl font-semibold text-center mb-4">Search Recipes</h2>
+        <div class="mb-4">
+          <input
+            type="text"
+            id="recipe-input"
+            placeholder="Enter recipe name..."
+            class="w-full p-2 border border-gray-300 rounded mt-1"
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-1">Dietary Restrictions:</label>
+          <select
+            id="dietary-filter"
+            class="w-full p-2 border border-gray-300 rounded"
+          >
+            <option value="">None</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="gluten-free">Gluten-Free</option>
+            <option value="dairy-free">Dairy-Free</option>
+          </select>
+        </div>
+        <div class="flex justify-center space-x-4">
+          <button
+            class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            onclick="searchRecipes()"
+          >
+            Search
+          </button>
+          <button
+            class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+            onclick="closeRecipeSearch()"
+          >
+            Cancel
+          </button>
+        </div>
+        <div id="recipe-results" class="mt-4">
+          <!-- Recipe results will be displayed here -->
+        </div>
+      </div>
+    </div>
+
     <!-- Edit Ingredient Modal -->
-    <div id="edit-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+    <div
+      id="edit-modal"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden"
+      style="z-index: 50"
+    >
       <div class="bg-white p-6 rounded-lg shadow-lg w-80">
         <h2 class="edit-modal-title">Edit Ingredient</h2>
         <div class="mb-4">
-          <label for="edit-ingredient-name" class="block text-gray-700">Ingredient Name:</label>
-          <input type="text" id="edit-ingredient-name" class="w-full p-2 border border-gray-300 rounded mt-1" />
+          <label for="edit-ingredient-name" class="block text-gray-700"
+            >Ingredient Name:</label
+          >
+          <input
+            type="text"
+            id="edit-ingredient-name"
+            class="w-full p-2 border border-gray-300 rounded mt-1"
+          />
         </div>
         <div class="mb-4">
-          <label for="edit-ingredient-count" class="block text-gray-700">Count:</label>
-          <input type="number" id="edit-ingredient-count" class="w-full p-2 border border-gray-300 rounded mt-1" min="1" />
+          <label for="edit-ingredient-count" class="block text-gray-700"
+            >Count:</label
+          >
+          <input
+            type="number"
+            id="edit-ingredient-count"
+            class="w-full p-2 border border-gray-300 rounded mt-1"
+            min="1"
+          />
         </div>
         <div class="modal-content-buttons">
-          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeModal()">Cancel</button>
-          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="saveIngredient()">Save</button>
+          <button
+            class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+            onclick="closeModal()"
+          >
+            Cancel
+          </button>
+          <button
+            class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            onclick="saveIngredient()"
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Checkout Modal -->
-    <div id="checkout-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+    <div
+      id="checkout-modal"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden"
+      style="z-index: 50"
+    >
       <div class="bg-white p-6 rounded-lg shadow-lg w-80">
-        <h2 class="text-lg font-semibold text-center mb-4">Are you sure you're ready to checkout?</h2>
+        <h2 class="text-lg font-semibold text-center mb-4">
+          Are you sure you're ready to checkout?
+        </h2>
         <div class="modal-content-buttons">
-          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeModal()">Cancel</button>
-          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="clearCheckedItems()">Continue</button>
+          <button
+            class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+            onclick="closeModal()"
+          >
+            Cancel
+          </button>
+          <button
+            class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            onclick="clearCheckedItems()"
+          >
+            Continue
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Sticky Checkout Button -->
-    <button class="sticky-checkout-button mt-4" onclick="openCheckoutModal()">Checkout Groceries</button>
+    <button class="sticky-checkout-button mt-4" onclick="openCheckoutModal()">
+      Checkout Groceries
+    </button>
 
     <!-- Footer Navigation Bar -->
-    <div class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black">
+    <div
+      class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black"
+    >
       <div class="grid grid-cols-3 h-full">
         <!-- Left Section: Recipes -->
-        <div class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full">
-          <a href="index.html" class="flex justify-center items-center w-full h-full">
+        <div
+          class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full"
+        >
+          <a
+            href="index.html"
+            class="flex justify-center items-center w-full h-full"
+          >
             <img src="images/recipes.png" alt="Recipes" class="h-10 w-20" />
           </a>
         </div>
 
         <!-- Center Section: Inventory -->
-        <div class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full">
-          <a href="inventory.html" class="flex justify-center items-center w-full h-full">
+        <div
+          class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full"
+        >
+          <a
+            href="inventory.html"
+            class="flex justify-center items-center w-full h-full"
+          >
             <img src="images/Inventory.png" alt="Inventory" class="h-10 w-11" />
           </a>
         </div>
 
         <!-- Right Section: Grocery List (Selected) -->
-        <div class="flex justify-center items-center h-full w-full" style="background-color: #38a169;">
-          <a href="grocery.html" class="flex justify-center items-center w-full h-full">
-            <img src="images/Groceries.png" alt="Grocery List" class="h-10 w-11" />
+        <div
+          class="flex justify-center items-center h-full w-full"
+          style="background-color: #38a169"
+        >
+          <a
+            href="grocery.html"
+            class="flex justify-center items-center w-full h-full"
+          >
+            <img
+              src="images/Groceries.png"
+              alt="Grocery List"
+              class="h-10 w-11"
+            />
           </a>
         </div>
       </div>
