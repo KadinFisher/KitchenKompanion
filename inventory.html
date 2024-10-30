@@ -131,7 +131,7 @@
             </div>
           </div>
         `;
-        document.getElementById("ingredient-list").insertAdjacentHTML("beforeend", ingredientHtml);
+        document.getElementById("ingredient-list").insertAdjacentHTML("afterbegin", ingredientHtml); // Insert at the top
       }
 
       function renderCategoryOptions() {

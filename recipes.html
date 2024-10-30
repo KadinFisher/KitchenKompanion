@@ -35,6 +35,9 @@
         align-items: center;
         justify-content: center;
       }
+      .highlighted {
+        background-color: #d1fae5;
+      }
       .sticky-button {
         position: sticky;
         bottom: 5.5rem; /* Adjusted to sit above the footer */
@@ -146,6 +149,7 @@
       const potentialIngredients = new Set(
         JSON.parse(localStorage.getItem("potentialIngredients")) || []
       );
+      let selectedRecipeId = null;
 
       window.addEventListener("DOMContentLoaded", () => {
         loadIngredients();
@@ -189,7 +193,8 @@
               <button class="bg-red-500 text-white rounded hover:bg-red-600 button-small" onclick="removeIngredient(this, '${ingredientValue}')">Remove</button>
             </div>
           `;
-          ingredientList.insertAdjacentHTML("beforeend", newIngredientHtml);
+          // Insert at the beginning of the ingredient list
+          ingredientList.insertAdjacentHTML("afterbegin", newIngredientHtml);
           ingredientInput.value = ""; // Clear input
           saveIngredients();
         }
@@ -221,11 +226,11 @@
           const headerHtml = `<div class="potential-recipes-header">Potential Recipes:</div>`;
           ingredientList.insertAdjacentHTML("beforeend", headerHtml);
 
-          matchingRecipes.forEach((recipe) => {
+          matchingRecipes.forEach((recipe, index) => {
             const recipeHtml = `
-              <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 text-lg ingredient-item">
+              <div id="recipe-${index}" class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 text-lg ingredient-item" onclick="selectRecipe(${index})">
                 <span class="text-gray-800 font-semibold">${recipe.name}</span>
-                <button class="bg-blue-500 text-white rounded hover:bg-blue-600 button-small" onclick="viewRecipe('${recipe.name}')">View</button>
+                <button class="bg-blue-500 text-white rounded hover:bg-blue-600 button-small" onclick="viewRecipe('${recipe.name}'); event.stopPropagation();">View</button>
               </div>
             `;
             ingredientList.insertAdjacentHTML("beforeend", recipeHtml);
@@ -237,6 +242,27 @@
         }
       }
 
+      function selectRecipe(recipeId) {
+        // Unhighlight the previously selected recipe
+        if (selectedRecipeId !== null) {
+          document.getElementById(`recipe-${selectedRecipeId}`).classList.remove("highlighted");
+        }
+        // Highlight the new selected recipe
+        selectedRecipeId = recipeId;
+        document.getElementById(`recipe-${selectedRecipeId}`).classList.add("highlighted");
+      }
+
+      function cookRecipe() {
+        if (selectedRecipeId !== null) {
+          // Clear ingredients and reset the view
+          potentialIngredients.clear();
+          saveIngredients();
+          returnToIngredients();
+        } else {
+          alert("Please select a recipe before cooking.");
+        }
+      }
+
       function returnToIngredients() {
         document.getElementById("ingredient-input-container").style.display = "flex";
         document.querySelector(".horizontal-bar").style.marginTop = "1rem";
@@ -245,6 +271,7 @@
         document.querySelector(".full-width-button-centered").style.display = "none";
         document.getElementById("ingredient-list").innerHTML = "";
         loadIngredients();
+        selectedRecipeId = null; // Reset selected recipe
       }
 
       function viewRecipe(recipeName) {
@@ -276,7 +303,7 @@
   </head>
   <body class="bg-gray-100 min-h-screen p-4">
     <div class="mb-4">
-      <h1 class="text-3xl font-semibold text-center">Search for Recipes</h1>
+      <h1 class="text-3xl font-semibold text-center">Recipes</h1>
     </div>
 
     <div id="ingredient-input-container" class="mb-4 flex items-center gap-2">
@@ -304,11 +331,11 @@
         <!-- Dynamically added ingredients or recipe results will appear here -->
       </div>
 
-      <button class="sticky-button mt-4 w-full" onclick="searchRecipes()">Search Recipes</button>
+      <button class="sticky-button mt-4 w-full" onclick="searchRecipes()">Search</button>
 
       <div class="button-container" style="display: none;">
         <button class="return-button" onclick="returnToIngredients()">Return</button>
-        <button class="cook-button" onclick="alert('Starting the cooking process...')">Cook Recipe</button>
+        <button class="cook-button" onclick="cookRecipe()">Cook Recipe</button>
       </div>
 
       <button class="full-width-button-centered" onclick="returnToIngredients()" style="display: none;">

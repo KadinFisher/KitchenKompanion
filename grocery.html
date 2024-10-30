@@ -148,7 +148,7 @@
             saveIngredientToLocalStorage(ingredient);
 
             const newIngredientHtml = renderIngredient(ingredient);
-            ingredientList.insertAdjacentHTML("beforeend", newIngredientHtml);
+            ingredientList.insertAdjacentHTML("afterbegin", newIngredientHtml); // Insert at the top
           }
           ingredientInput.value = "";
           countInput.value = 1;
