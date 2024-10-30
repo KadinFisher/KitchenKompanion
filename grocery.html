@@ -99,6 +99,7 @@
         id="ingredient-input"
         placeholder="Enter ingredient..."
         class="w-1/2 p-2 border border-gray-300 rounded mt-1"
+        onkeydown="if (event.key === 'Enter') addIngredient()"
       />
       <input
         type="number"

@@ -30,47 +30,181 @@
         align-items: center;
         justify-content: space-between;
       }
+      .edit-modal-title {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-decoration: underline;
+        margin-bottom: 1rem;
+      }
+      .soft-orange {
+        background-color: #fc8a48;
+      }
+      .soft-orange:hover {
+        background-color: #ea7d3a;
+      }
+      .button-small {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.85rem;
+      }
       .controls {
         display: flex;
-        width: 50%;
+        width: 50%; /* Right half of the bar */
         justify-content: space-evenly;
         align-items: center;
       }
-      .minus-btn, .plus-btn, .trash-btn {
-        width: 20%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .minus-btn, .plus-btn, .edit-btn, .trash-btn {
+        width: 20%; /* Larger width for each control button */
         text-align: center;
-        padding: 0.5rem;
-      }
-      .trash-btn {
-        background-color: #e3342f;
-        color: white;
-      }
-      .trash-btn:hover {
-        background-color: #cc1f1a;
       }
       .count-display {
-        width: 10%;
+        width: 10%; /* Smaller width for count display */
         text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
     </style>
+
+    <script>
+      let editMode = false;
+      let editId = null;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadIngredients();
+      });
+
+      function addIngredient() {
+        const ingredientInput = document.getElementById("ingredient-input");
+        const quantityInput = document.getElementById("quantity-input");
+        const name = ingredientInput.value.trim();
+        const count = parseInt(quantityInput.value) || 1;
+
+        if (!name || count < 1) {
+          alert("Please enter a valid ingredient and quantity.");
+          return;
+        }
+
+        const newId = Date.now();
+        const ingredient = { id: newId, name: name, count: count };
+        saveIngredientToLocalStorage(ingredient);
+
+        renderIngredient(ingredient);
+        ingredientInput.value = "";
+        quantityInput.value = 1;
+      }
+
+      function saveIngredientToLocalStorage(ingredient) {
+        let ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
+        ingredients.push(ingredient);
+        localStorage.setItem("ingredients", JSON.stringify(ingredients));
+      }
+
+      function loadIngredients() {
+        const ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
+        ingredients.forEach((ingredient) => renderIngredient(ingredient));
+      }
+
+      function renderIngredient({ id, name, count }) {
+        const ingredientHtml = `
+          <div id="ingredient-${id}" class="bg-white ingredient-item rounded-lg shadow">
+            <span class="text-gray-800 font-medium ingredient-name">${name}</span>
+            <div class="controls">
+              <button class="bg-gray-300 text-gray-700 button-small rounded hover:bg-gray-400 minus-btn" onclick="decrementCount(${id})">-</button>
+              <span id="count-${id}" class="text-gray-800 font-semibold count-display">${count}</span>
+              <button class="bg-gray-300 text-gray-700 button-small rounded hover:bg-gray-400 plus-btn" onclick="incrementCount(${id})">+</button>
+              <button class="soft-orange text-white button-small rounded hover:bg-[#ea7d3a] edit-btn" onclick="openEditModal(${id})">Edit</button>
+              <button class="bg-red-500 text-white button-small rounded hover:bg-red-600 trash-btn flex justify-center items-center" onclick="deleteIngredient(${id})">Trash</button>
+            </div>
+          </div>
+        `;
+        document.getElementById("ingredient-list").insertAdjacentHTML("beforeend", ingredientHtml);
+      }
+
+      function openEditModal(id) {
+        editMode = true;
+        editId = id;
+        const ingredientName = document.querySelector(`#ingredient-${id} .ingredient-name`).innerText;
+        const ingredientCount = document.getElementById(`count-${id}`).innerText;
+
+        document.getElementById("ingredient-name").value = ingredientName;
+        document.getElementById("ingredient-count").value = ingredientCount;
+        document.getElementById("ingredient-modal").classList.remove("hidden");
+      }
+
+      function closeModal() {
+        document.getElementById("ingredient-modal").classList.add("hidden");
+        editMode = false;
+      }
+
+      function saveIngredient() {
+        const name = document.getElementById("ingredient-name").value.trim();
+        const count = parseInt(document.getElementById("ingredient-count").value);
+
+        if (!name || count < 1) {
+          alert("Please enter a valid ingredient and quantity.");
+          return;
+        }
+
+        document.querySelector(`#ingredient-${editId} .ingredient-name`).innerText = name;
+        document.getElementById(`count-${editId}`).innerText = count;
+
+        updateIngredientInLocalStorage(editId, name, count);
+        closeModal();
+      }
+
+      function updateIngredientInLocalStorage(id, name, count) {
+        const ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
+        const index = ingredients.findIndex((ingredient) => ingredient.id === id);
+        if (index !== -1) {
+          ingredients[index].name = name;
+          ingredients[index].count = count;
+          localStorage.setItem("ingredients", JSON.stringify(ingredients));
+        }
+      }
+
+      function incrementCount(id) {
+        const countElem = document.getElementById(`count-${id}`);
+        const newCount = parseInt(countElem.innerText) + 1;
+        countElem.innerText = newCount;
+        updateCountInLocalStorage(id, newCount);
+      }
+
+      function decrementCount(id) {
+        const countElem = document.getElementById(`count-${id}`);
+        const currentCount = parseInt(countElem.innerText);
+        if (currentCount > 1) {
+          const newCount = currentCount - 1;
+          countElem.innerText = newCount;
+          updateCountInLocalStorage(id, newCount);
+        }
+      }
+
+      function updateCountInLocalStorage(id, count) {
+        const ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
+        const index = ingredients.findIndex((ingredient) => ingredient.id === id);
+        if (index !== -1) {
+          ingredients[index].count = count;
+          localStorage.setItem("ingredients", JSON.stringify(ingredients));
+        }
+      }
+
+      function deleteIngredient(id) {
+        document.getElementById(`ingredient-${id}`).remove();
+        let ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
+        ingredients = ingredients.filter((ingredient) => ingredient.id !== id);
+        localStorage.setItem("ingredients", JSON.stringify(ingredients));
+      }
+    </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-6">
-    <!-- Centered Header with Input for Adding Ingredients -->
+    <!-- Centered Header with Ingredient Search and Quantity Input -->
     <div class="flex flex-col items-center mb-4 space-y-2">
       <h1 class="text-3xl font-semibold">Inventory</h1>
       <div class="flex items-center space-x-2 w-full max-w-lg">
         <input
           type="text"
           id="ingredient-input"
-          placeholder="Enter Ingredient..."
+          placeholder="Enter Ingredient"
           class="w-3/5 p-2 border border-gray-300 rounded text-sm"
+          onkeydown="if (event.key === 'Enter') addIngredient();"
         />
         <input
           type="number"
@@ -78,6 +212,7 @@
           min="1"
           value="1"
           class="w-1/5 p-2 border border-gray-300 rounded text-sm"
+          onkeydown="if (event.key === 'Enter') addIngredient();"
         />
         <button
           class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
@@ -96,6 +231,28 @@
     <!-- Ingredient List -->
     <div id="ingredient-list" class="space-y-2">
       <!-- Dynamic ingredients will be displayed here -->
+    </div>
+
+    <!-- Modal for Editing Ingredients -->
+    <div
+      id="ingredient-modal"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-lg w-80">
+        <h2 class="edit-modal-title">Edit Ingredient</h2>
+        <div class="mb-4">
+          <label for="ingredient-name" class="block text-gray-700">Ingredient Name:</label>
+          <input type="text" id="ingredient-name" class="w-full p-2 border border-gray-300 rounded mt-1" />
+        </div>
+        <div class="mb-4">
+          <label for="ingredient-count" class="block text-gray-700">Count:</label>
+          <input type="number" id="ingredient-count" class="w-full p-2 border border-gray-300 rounded mt-1" min="1" />
+        </div>
+        <div class="flex justify-end space-x-4">
+          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeModal()">Cancel</button>
+          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="saveIngredient()">Save</button>
+        </div>
+      </div>
     </div>
 
     <!-- Footer Navigation Bar -->
@@ -123,8 +280,5 @@
         </div>
       </div>
     </div>
-
-    <!-- Import JavaScript at the end of the body for better loading performance -->
-    <script type="module" src="./javascript/inventory.js"></script>
   </body>
 </html>
