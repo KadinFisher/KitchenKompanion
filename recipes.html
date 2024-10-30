@@ -14,19 +14,98 @@
       body {
         font-family: 'Courier New', Courier, monospace;
       }
+      #ingredient-list {
+        max-height: calc(100vh - 200px); /* Increased height for more list space */
+        overflow-y: auto;
+      }
+      .ingredient-item {
+        padding: 1rem; /* Increase padding for larger height */
+        font-size: 1.125rem; /* Larger font for visibility */
+      }
+      .sticky-button {
+        position: sticky;
+        bottom: 4rem;
+        background-color: #3b82f6;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        text-align: center;
+        transition: background-color 0.2s;
+      }
+      .sticky-button:hover {
+        background-color: #2563eb;
+      }
+      .button-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        position: sticky;
+        bottom: 4rem;
+      }
+      .full-width-button {
+        background-color: #fc8a48; /* Softer orange for Return */
+        width: 100%;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        text-align: center;
+        transition: background-color 0.2s;
+      }
+      .full-width-button:hover {
+        background-color: #f66d32; /* Slightly darker orange on hover */
+      }
+      .return-button {
+        background-color: #fc8a48; /* Softer orange for Return */
+        width: 48%;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        text-align: center;
+        transition: background-color 0.2s;
+      }
+      .return-button:hover {
+        background-color: #f66d32;
+      }
+      .cook-button {
+        background-color: #3b82f6; /* Blue for Cook Recipe */
+        width: 48%;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        text-align: center;
+        transition: background-color 0.2s;
+      }
+      .cook-button:hover {
+        background-color: #2563eb;
+      }
+      .potential-recipes-header,
+      .no-recipes-message {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #374151;
+        text-align: center;
+        margin-top: 1rem;
+      }
     </style>
 
+    <!-- Import external recipes.js file -->
+    <script src="/javascript/recipes.js"></script>
+
     <script>
+      const potentialIngredients = new Set();
+
       function addIngredient() {
         const ingredientInput = document.getElementById("ingredient-input");
-        const ingredientList = document.getElementById("ingredient-list");
-        const ingredientValue = ingredientInput.value.trim();
+        const ingredientValue = ingredientInput.value.trim().toLowerCase();
 
-        if (ingredientValue) {
+        if (ingredientValue && !potentialIngredients.has(ingredientValue)) {
+          potentialIngredients.add(ingredientValue);
+          const ingredientList = document.getElementById("ingredient-list");
+
           const newIngredientHtml = `
-            <div class="flex justify-between items-center bg-white p-2 rounded-lg shadow mt-2 text-sm">
+            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 text-lg ingredient-item">
               <span class="text-gray-800">${ingredientValue}</span>
-              <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs" onclick="removeIngredient(this)">Remove</button>
+              <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs" onclick="removeIngredient(this, '${ingredientValue}')">Remove</button>
             </div>
           `;
           ingredientList.insertAdjacentHTML("beforeend", newIngredientHtml);
@@ -34,28 +113,92 @@
         }
       }
 
-      function removeIngredient(button) {
-        button.parentElement.remove(); // Remove ingredient from list
+      function removeIngredient(button, ingredient) {
+        potentialIngredients.delete(ingredient);
+        button.parentElement.remove();
       }
 
       function searchRecipes() {
-        alert("Search recipes based on ingredients!");
+        const matchingRecipes = recipes.filter((recipe) => {
+          const matchingIngredients = recipe.ingredients.filter((ingredient) => 
+            potentialIngredients.has(ingredient.toLowerCase())
+          );
+          return matchingIngredients.length / recipe.ingredients.length >= 0.6;
+        });
+
+        const ingredientList = document.getElementById("ingredient-list");
+        ingredientList.innerHTML = ""; // Clear the current ingredient list
+
+        // Hide ingredient input and add button, and adjust layout
+        document.getElementById("ingredient-input-container").style.display = "none";
+        document.querySelector(".horizontal-bar").style.marginTop = "0";
+
+        // Toggle button visibility based on recipes found
+        document.querySelector(".sticky-button").style.display = "none";
+        
+        if (matchingRecipes.length > 0) {
+          document.querySelector(".button-container").style.display = "flex";
+          const headerHtml = `<div class="potential-recipes-header">Potential Recipes:</div>`;
+          ingredientList.insertAdjacentHTML("beforeend", headerHtml);
+
+          matchingRecipes.forEach((recipe) => {
+            const recipeHtml = `
+              <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 text-lg ingredient-item">
+                <span class="text-gray-800 font-semibold">${recipe.name}</span>
+                <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs" onclick="viewRecipe('${recipe.name}')">View</button>
+              </div>
+            `;
+            ingredientList.insertAdjacentHTML("beforeend", recipeHtml);
+          });
+        } else {
+          // Display single, full-width return button when no recipes are found
+          document.querySelector(".button-container").style.display = "none";
+          document.querySelector(".full-width-button").style.display = "block";
+          ingredientList.innerHTML = '<div class="no-recipes-message">No matching recipes found.</div>';
+        }
+      }
+
+      function returnToIngredients() {
+        document.getElementById("ingredient-list").innerHTML = ""; // Clear recipe list display
+        potentialIngredients.forEach((ingredient) => {
+          const ingredientHtml = `
+            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 text-lg ingredient-item">
+              <span class="text-gray-800">${ingredient}</span>
+              <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs" onclick="removeIngredient(this, '${ingredient}')">Remove</button>
+            </div>
+          `;
+          document.getElementById("ingredient-list").insertAdjacentHTML("beforeend", ingredientHtml);
+        });
+
+        // Show ingredient input and add button, restore layout
+        document.getElementById("ingredient-input-container").style.display = "block";
+        document.querySelector(".horizontal-bar").style.marginTop = "1rem";
+
+        // Toggle button visibility
+        document.querySelector(".sticky-button").style.display = "block";
+        document.querySelector(".button-container").style.display = "none";
+        document.querySelector(".full-width-button").style.display = "none";
+      }
+
+      function viewRecipe(recipeName) {
+        alert(`Displaying details for ${recipeName}`);
       }
     </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-4">
-    <!-- Header -->
+    <!-- Header with Larger Title -->
     <div class="mb-4">
-      <h1 class="text-xl font-semibold text-center">Search for Recipes</h1>
+      <h1 class="text-3xl font-semibold text-center">Search for Recipes</h1>
     </div>
 
     <!-- Ingredient Search Section -->
-    <div class="mb-4">
+    <div id="ingredient-input-container" class="mb-4">
       <input
         type="text"
         id="ingredient-input"
         placeholder="Enter ingredient..."
         class="w-full p-2 border border-gray-300 rounded text-sm"
+        onkeydown="if (event.key === 'Enter') { addIngredient(); }"
       />
       <button
         class="bg-green-400 text-white w-full p-2 rounded mt-2 hover:bg-green-600 text-sm"
@@ -66,20 +209,45 @@
     </div>
 
     <!-- Horizontal bar below Add Ingredient Section -->
-    <hr class="border-t-2 border-gray-300 my-4" />
+    <hr class="border-t-2 border-gray-300 my-4 horizontal-bar" />
 
-    <!-- Added Ingredients List -->
-    <div id="ingredient-list" class="space-y-2 text-sm">
-      <!-- Dynamically added ingredients will appear here -->
-    </div>
+    <!-- Scrollable Added Ingredients List and Sticky Search Button -->
+    <div id="ingredient-container" class="space-y-2 text-lg">
+      <div id="ingredient-list" class="space-y-4">
+        <!-- Dynamically added ingredients or recipe results will appear here -->
+      </div>
 
-    <!-- Search Recipes Button -->
-    <div class="mt-4">
+      <!-- Sticky Search Recipes Button -->
       <button
-        class="bg-blue-500 text-white p-3 rounded hover:bg-blue-600 w-full text-sm"
+        class="sticky-button mt-4 w-full"
         onclick="searchRecipes()"
       >
         Search Recipes
+      </button>
+
+      <!-- Fixed Return and Cook Recipe Buttons Above Footer -->
+      <div class="button-container" style="display: none;">
+        <button
+          class="return-button"
+          onclick="returnToIngredients()"
+        >
+          Return
+        </button>
+        <button
+          class="cook-button"
+          onclick="alert('Starting the cooking process...')"
+        >
+          Cook Recipe
+        </button>
+      </div>
+
+      <!-- Full-width Return Button for No Recipes Found Case -->
+      <button
+        class="full-width-button"
+        onclick="returnToIngredients()"
+        style="display: none;"
+      >
+        Return
       </button>
     </div>
 

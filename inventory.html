@@ -19,209 +19,83 @@
         margin-top: 1rem;
         margin-bottom: 1rem;
       }
+      #ingredient-list {
+        max-height: calc(100vh - 250px);
+        overflow-y: auto;
+      }
+      .ingredient-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .controls {
+        display: flex;
+        width: 50%;
+        justify-content: space-evenly;
+        align-items: center;
+      }
+      .minus-btn, .plus-btn, .trash-btn {
+        width: 20%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0.5rem;
+      }
+      .trash-btn {
+        background-color: #e3342f;
+        color: white;
+      }
+      .trash-btn:hover {
+        background-color: #cc1f1a;
+      }
+      .count-display {
+        width: 10%;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     </style>
-
-    <script>
-      let editMode = false;
-      let editId = null;
-
-      function openModal(isEdit, id = null) {
-        document.getElementById("ingredient-modal").classList.remove("hidden");
-        editMode = isEdit;
-        if (isEdit && id) {
-          editId = id;
-          const ingredientName = document.querySelector(
-            `#ingredient-${id} span`
-          ).innerText;
-          const ingredientCount = document.getElementById(
-            `count-${id}`
-          ).innerText;
-          document.getElementById("ingredient-name").value = ingredientName;
-          document.getElementById("ingredient-count").value = ingredientCount;
-        } else {
-          document.getElementById("ingredient-name").value = "";
-          document.getElementById("ingredient-count").value = 1;
-        }
-      }
-
-      function closeModal() {
-        document.getElementById("ingredient-modal").classList.add("hidden");
-      }
-
-      function saveIngredient() {
-        const name = document.getElementById("ingredient-name").value;
-        const count = document.getElementById("ingredient-count").value;
-
-        if (editMode && editId) {
-          document.querySelector(`#ingredient-${editId} span`).innerText = name;
-          document.getElementById(`count-${editId}`).innerText = count;
-        } else {
-          const newId = Date.now();
-          const ingredientHtml = `
-            <div
-              id="ingredient-${newId}"
-              class="flex justify-between items-center bg-white p-4 rounded-lg shadow"
-            >
-              <span class="text-gray-800 font-medium">${name}</span>
-
-              <div class="flex items-center space-x-2">
-                <button
-                  class="bg-gray-300 text-gray-700 p-1 rounded hover:bg-gray-400"
-                  onclick="decrementCount(${newId})"
-                >
-                  -
-                </button>
-                <span id="count-${newId}" class="text-gray-800 font-semibold">${count}</span>
-                <button
-                  class="bg-gray-300 text-gray-700 p-1 rounded hover:bg-gray-400"
-                  onclick="incrementCount(${newId})"
-                >
-                  +
-                </button>
-              </div>
-
-              <div class="flex space-x-2">
-                <button
-                  class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-                  onclick="openModal(true, ${newId})"
-                >
-                  Edit
-                </button>
-                <button
-                  class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-                  onclick="deleteIngredient(${newId})"
-                >
-                  Trash
-                </button>
-              </div>
-            </div>
-          `;
-          document
-            .getElementById("ingredient-list")
-            .insertAdjacentHTML("beforeend", ingredientHtml);
-        }
-
-        closeModal();
-      }
-    </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-6">
-    <!-- Centered Header with Add Ingredient Button -->
-    <div class="flex justify-center items-center mb-4 space-x-2">
-      <h1 class="text-2xl font-semibold">Inventory</h1>
-      <button
-        class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
-        onclick="openModal(false)"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
+    <!-- Centered Header with Input for Adding Ingredients -->
+    <div class="flex flex-col items-center mb-4 space-y-2">
+      <h1 class="text-3xl font-semibold">Inventory</h1>
+      <div class="flex items-center space-x-2 w-full max-w-lg">
+        <input
+          type="text"
+          id="ingredient-input"
+          placeholder="Enter Ingredient..."
+          class="w-3/5 p-2 border border-gray-300 rounded text-sm"
+        />
+        <input
+          type="number"
+          id="quantity-input"
+          min="1"
+          value="1"
+          class="w-1/5 p-2 border border-gray-300 rounded text-sm"
+        />
+        <button
+          class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
+          onclick="addIngredient()"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
-      </button>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Horizontal Bar -->
-    <hr class="border-t-2 border-gray-300 my-4" />
+    <hr class="border-t-2 border-gray-300 my-4 horizontal-bar" />
 
     <!-- Ingredient List -->
-    <div id="ingredient-list" class="space-y-4">
-      <!-- Ingredient Bar Template -->
-      <div
-        id="ingredient-1"
-        class="flex justify-between items-center bg-white p-4 rounded-lg shadow"
-      >
-        <span class="text-gray-800 font-medium">Ingredient 1</span>
-
-        <!-- Count Controls -->
-
-        <!-- Edit and Delete Buttons -->
-        <div class="flex space-x-2">
-          <div class="flex items-center space-x-2">
-            <button
-              class="bg-gray-300 text-gray-700 p-1 rounded hover:bg-gray-400"
-              onclick="decrementCount(1)"
-            >
-              -
-            </button>
-            <span id="count-1" class="text-gray-800 font-semibold">2</span>
-            <button
-              class="bg-gray-300 text-gray-700 p-1 rounded hover:bg-gray-400"
-              onclick="incrementCount(1)"
-            >
-              +
-            </button>
-          </div>
-          <button
-            class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-            onclick="openModal(true, 1)"
-          >
-            Edit
-          </button>
-          <button
-            class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-            onclick="deleteIngredient(1)"
-          >
-            Trash
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal for Adding/Editing Ingredients -->
-    <div
-      id="ingredient-modal"
-      class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden"
-    >
-      <div class="bg-white p-6 rounded-lg shadow-lg w-80">
-        <h2 class="text-xl font-semibold mb-4" id="modal-title">
-          Add/Edit Ingredient
-        </h2>
-        <div class="mb-4">
-          <label for="ingredient-name" class="block text-gray-700"
-            >Ingredient Name</label
-          >
-          <input
-            type="text"
-            id="ingredient-name"
-            class="w-full p-2 border border-gray-300 rounded mt-1"
-          />
-        </div>
-        <div class="mb-4">
-          <label for="ingredient-count" class="block text-gray-700"
-            >Count</label
-          >
-          <input
-            type="number"
-            id="ingredient-count"
-            class="w-full p-2 border border-gray-300 rounded mt-1"
-            min="1"
-          />
-        </div>
-        <div class="flex justify-end space-x-4">
-          <button
-            class="bg-gray-500 text-white p-2 rounded hover:bg-gray-600"
-            onclick="closeModal()"
-          >
-            Cancel
-          </button>
-          <button
-            class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
-            onclick="saveIngredient()"
-          >
-            Save
-          </button>
-        </div>
-      </div>
+    <div id="ingredient-list" class="space-y-2">
+      <!-- Dynamic ingredients will be displayed here -->
     </div>
 
     <!-- Footer Navigation Bar -->
@@ -249,5 +123,8 @@
         </div>
       </div>
     </div>
+
+    <!-- Import JavaScript at the end of the body for better loading performance -->
+    <script type="module" src="./javascript/inventory.js"></script>
   </body>
 </html>
