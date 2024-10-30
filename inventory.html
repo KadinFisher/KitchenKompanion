@@ -20,7 +20,7 @@
         margin-bottom: 1rem;
       }
       #ingredient-list {
-        max-height: calc(100vh - 250px);
+        max-height: calc(100vh - 300px);
         overflow-y: auto;
       }
       .ingredient-item {
@@ -49,32 +49,37 @@
       }
       .controls {
         display: flex;
-        width: 50%; /* Right half of the bar */
+        width: 50%;
         justify-content: space-evenly;
         align-items: center;
       }
       .minus-btn, .plus-btn, .edit-btn, .trash-btn {
-        width: 20%; /* Larger width for each control button */
+        width: 20%;
         text-align: center;
       }
       .count-display {
-        width: 10%; /* Smaller width for count display */
+        width: 10%;
         text-align: center;
       }
     </style>
 
+    <script src="./javascript/inventory.js"></script> <!-- Link to larger inventory list -->
+
     <script>
+      let ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
       let editMode = false;
       let editId = null;
+      let currentCategory = "All";
 
       document.addEventListener("DOMContentLoaded", () => {
         loadIngredients();
+        renderCategoryOptions();
       });
 
       function addIngredient() {
         const ingredientInput = document.getElementById("ingredient-input");
         const quantityInput = document.getElementById("quantity-input");
-        const name = ingredientInput.value.trim();
+        const name = ingredientInput.value.trim().toLowerCase();
         const count = parseInt(quantityInput.value) || 1;
 
         if (!name || count < 1) {
@@ -82,27 +87,38 @@
           return;
         }
 
-        const newId = Date.now();
-        const ingredient = { id: newId, name: name, count: count };
-        saveIngredientToLocalStorage(ingredient);
+        const existingItem = inventoryItems.find(item => item.name.toLowerCase() === name);
+        if (!existingItem) {
+          alert("This ingredient is not recognized. Please use a valid inventory item.");
+          return;
+        }
 
+        if (ingredients.some(ingredient => ingredient.name.toLowerCase() === name)) {
+          alert("This ingredient is already in the inventory.");
+          return;
+        }
+
+        const newId = Date.now();
+        const ingredient = { id: newId, name: name, count: count, type: existingItem.type };
+        saveIngredientToLocalStorage(ingredient);
         renderIngredient(ingredient);
+
         ingredientInput.value = "";
         quantityInput.value = 1;
       }
 
       function saveIngredientToLocalStorage(ingredient) {
-        let ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
         ingredients.push(ingredient);
         localStorage.setItem("ingredients", JSON.stringify(ingredients));
       }
 
       function loadIngredients() {
-        const ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
-        ingredients.forEach((ingredient) => renderIngredient(ingredient));
+        ingredients.forEach(ingredient => renderIngredient(ingredient));
       }
 
-      function renderIngredient({ id, name, count }) {
+      function renderIngredient({ id, name, count, type }) {
+        if (currentCategory !== "All" && currentCategory !== type) return;
+
         const ingredientHtml = `
           <div id="ingredient-${id}" class="bg-white ingredient-item rounded-lg shadow">
             <span class="text-gray-800 font-medium ingredient-name">${name}</span>
@@ -116,6 +132,16 @@
           </div>
         `;
         document.getElementById("ingredient-list").insertAdjacentHTML("beforeend", ingredientHtml);
+      }
+
+      function renderCategoryOptions() {
+        document.getElementById("category-select").addEventListener("change", filterByCategory);
+      }
+
+      function filterByCategory(event) {
+        currentCategory = event.target.value;
+        document.getElementById("ingredient-list").innerHTML = "";
+        ingredients.forEach(ingredient => renderIngredient(ingredient));
       }
 
       function openEditModal(id) {
@@ -151,8 +177,7 @@
       }
 
       function updateIngredientInLocalStorage(id, name, count) {
-        const ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
-        const index = ingredients.findIndex((ingredient) => ingredient.id === id);
+        const index = ingredients.findIndex(ingredient => ingredient.id === id);
         if (index !== -1) {
           ingredients[index].name = name;
           ingredients[index].count = count;
@@ -178,8 +203,7 @@
       }
 
       function updateCountInLocalStorage(id, count) {
-        const ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
-        const index = ingredients.findIndex((ingredient) => ingredient.id === id);
+        const index = ingredients.findIndex(ingredient => ingredient.id === id);
         if (index !== -1) {
           ingredients[index].count = count;
           localStorage.setItem("ingredients", JSON.stringify(ingredients));
@@ -188,8 +212,7 @@
 
       function deleteIngredient(id) {
         document.getElementById(`ingredient-${id}`).remove();
-        let ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
-        ingredients = ingredients.filter((ingredient) => ingredient.id !== id);
+        ingredients = ingredients.filter(ingredient => ingredient.id !== id);
         localStorage.setItem("ingredients", JSON.stringify(ingredients));
       }
     </script>
@@ -202,7 +225,7 @@
         <input
           type="text"
           id="ingredient-input"
-          placeholder="Enter Ingredient"
+          placeholder="Enter Ingredient..."
           class="w-3/5 p-2 border border-gray-300 rounded text-sm"
           onkeydown="if (event.key === 'Enter') addIngredient();"
         />
@@ -226,7 +249,21 @@
     </div>
 
     <!-- Horizontal Bar -->
-    <hr class="border-t-2 border-gray-300 my-4 horizontal-bar" />
+    <hr class="border-t-2 border-gray-300 my-4 custom-hr" />
+
+    <!-- Category Dropdown with Filter Label -->
+    <div class="flex justify-center items-center mb-4">
+      <label for="category-select" class="mr-2 font-medium">Filter:</label>
+      <select id="category-select" class="border border-gray-300 rounded p-2">
+        <option value="All">All</option>
+        <option value="Fruits">Fruits</option>
+        <option value="Vegetables">Vegetables</option>
+        <option value="Grains">Grains</option>
+        <option value="Protein">Protein</option>
+        <option value="Dairy">Dairy</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
 
     <!-- Ingredient List -->
     <div id="ingredient-list" class="space-y-2">

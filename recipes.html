@@ -14,9 +14,15 @@
       body {
         font-family: 'Courier New', Courier, monospace;
       }
+      .custom-hr {
+        border-top: 2px solid #333;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+      }
       #ingredient-list {
-        max-height: calc(100vh - 200px);
+        max-height: calc(100vh - 340px); /* Adjusted to sit above the button with extra space */
         overflow-y: auto;
+        padding-bottom: 1rem; /* Adds extra space to avoid hiding last item */
       }
       .ingredient-item {
         padding: 1rem;
@@ -31,7 +37,7 @@
       }
       .sticky-button {
         position: sticky;
-        bottom: 4rem;
+        bottom: 5.5rem; /* Adjusted to sit above the footer */
         background-color: #3b82f6;
         color: white;
         padding: 0.75rem;
@@ -134,16 +140,12 @@
       }
     </style>
 
+    <script src="./javascript/recipes.js"></script> <!-- Link to your recipes.js file -->
+
     <script>
       const potentialIngredients = new Set(
         JSON.parse(localStorage.getItem("potentialIngredients")) || []
       );
-
-      const recipes = [
-        { name: "Vegan Pancakes", ingredients: ["flour", "almond milk", "banana", "baking powder"], dietary: ["vegan", "dairy-free", "egg-free"] },
-        { name: "Gluten-Free Brownies", ingredients: ["gluten-free flour", "cocoa powder", "sugar", "egg"], dietary: ["gluten-free"] },
-        // Additional recipes...
-      ];
 
       window.addEventListener("DOMContentLoaded", () => {
         loadIngredients();
@@ -236,7 +238,7 @@
       }
 
       function returnToIngredients() {
-        document.getElementById("ingredient-input-container").style.display = "block";
+        document.getElementById("ingredient-input-container").style.display = "flex";
         document.querySelector(".horizontal-bar").style.marginTop = "1rem";
         document.querySelector(".sticky-button").style.display = "block";
         document.querySelector(".button-container").style.display = "none";
@@ -277,19 +279,21 @@
       <h1 class="text-3xl font-semibold text-center">Search for Recipes</h1>
     </div>
 
-    <div id="ingredient-input-container" class="mb-4">
+    <div id="ingredient-input-container" class="mb-4 flex items-center gap-2">
       <input
         type="text"
         id="ingredient-input"
         placeholder="Enter ingredient..."
-        class="w-full p-2 border border-gray-300 rounded text-sm"
+        class="w-11/12 p-2 border border-gray-300 rounded text-sm"
         onkeydown="if (event.key === 'Enter') { addIngredient(); }"
       />
       <button
-        class="bg-green-400 text-white w-full p-2 rounded mt-2 hover:bg-green-600 text-sm"
+        class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
         onclick="addIngredient()"
       >
-        Add Ingredient
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
       </button>
     </div>
 

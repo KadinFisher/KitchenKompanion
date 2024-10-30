@@ -19,39 +19,135 @@
         margin-top: 1rem;
         margin-bottom: 1rem;
       }
+      .ingredient-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .controls {
+        display: flex;
+        width: 50%;
+        justify-content: space-evenly;
+        align-items: center;
+      }
+      .disabled-controls button {
+        pointer-events: none;
+        opacity: 0.5;
+      }
+      .minus-btn, .plus-btn, .edit-btn, .trash-btn {
+        width: 20%;
+        text-align: center;
+      }
+      .count-display {
+        width: 10%;
+        text-align: center;
+      }
+      .button-small {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.85rem;
+      }
+      .soft-orange {
+        background-color: #fc8a48;
+      }
+      .soft-orange:hover {
+        background-color: #ea7d3a;
+      }
+      .edit-modal-title {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-decoration: underline;
+        margin-bottom: 1rem;
+      }
+      .crossed-off {
+        background-color: #d1fae5;
+        position: relative;
+      }
+      .crossed-off::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        border-top: 2px dashed black;
+        transform: translateY(-50%);
+      }
+      .sticky-checkout-button {
+        position: sticky;
+        bottom: 5.5rem;
+        background-color: #3b82f6;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        text-align: center;
+        transition: background-color 0.2s;
+        width: 100%;
+        text-align: center;
+      }
+      .sticky-checkout-button:hover {
+        background-color: #2563eb;
+      }
+      #ingredient-list {
+        max-height: calc(100vh - 300px); /* Increased to ensure last item is visible above button */
+        overflow-y: auto;
+        padding-bottom: 1rem;
+      }
+      .trash-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .modal-overlay {
+        z-index: 50;
+      }
     </style>
 
     <script>
       let editMode = false;
       let editId = null;
 
+      document.addEventListener("DOMContentLoaded", () => {
+        loadIngredients();
+      });
+
       function addIngredient() {
         const ingredientInput = document.getElementById("ingredient-input");
         const countInput = document.getElementById("count-input");
         const ingredientList = document.getElementById("ingredient-list");
-        const ingredientValue = ingredientInput.value.trim();
-        const countValue = countInput.value.trim();
+        const ingredientValue = ingredientInput.value.trim().toLowerCase();
+        const countValue = parseInt(countInput.value) || 1;
 
         if (ingredientValue && countValue) {
+          const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+          const duplicate = ingredients.some(ingredient => ingredient.name.toLowerCase() === ingredientValue);
+
+          if (duplicate) {
+            alert("This item is already in the grocery list.");
+            return;
+          }
+
           if (editMode && editId) {
             document.querySelector(
               `#ingredient-${editId} .ingredient-name`
             ).innerText = ingredientValue;
             document.querySelector(
-              `#ingredient-${editId} .ingredient-count`
+              `#ingredient-${editId} .count-display`
             ).innerText = countValue;
+            updateIngredientInLocalStorage(editId, ingredientValue, countValue);
           } else {
             const newId = Date.now();
-            const newIngredientHtml = `
-              <div id="ingredient-${newId}" class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 cursor-pointer" onclick="crossOff(this)">
-                <span class="ingredient-name text-gray-800">${ingredientValue}</span>
-                <span class="ingredient-count text-gray-600">${countValue}</span>
-                <div class="flex space-x-2">
-                  <button class="bg-blue-500 text-white p-1 rounded hover:bg-blue-600" onclick="openEdit(${newId}); event.stopPropagation();">Edit</button>
-                  <button class="bg-red-500 text-white p-1 rounded hover:bg-red-600" onclick="deleteIngredient(${newId}); event.stopPropagation();">Delete</button>
-                </div>
-              </div>
-            `;
+            const ingredient = { id: newId, name: ingredientValue, count: countValue, crossedOff: false };
+            saveIngredientToLocalStorage(ingredient);
+
+            const newIngredientHtml = renderIngredient(ingredient);
             ingredientList.insertAdjacentHTML("beforeend", newIngredientHtml);
           }
           ingredientInput.value = "";
@@ -61,69 +157,215 @@
         }
       }
 
-      function crossOff(ingredientElement) {
-        ingredientElement.classList.toggle("line-through");
-        ingredientElement.classList.toggle("bg-green-200");
+      function renderIngredient({ id, name, count, crossedOff }) {
+        const crossedClass = crossedOff ? "crossed-off" : "";
+        const disabledControls = crossedOff ? "disabled-controls" : "";
+        return `
+          <div id="ingredient-${id}" class="bg-white ingredient-item rounded-lg shadow mt-2 ${crossedClass}" onclick="toggleCrossOff(${id})">
+            <span class="text-gray-800 font-medium ingredient-name">${name}</span>
+            <div class="controls ${disabledControls}">
+              <button class="bg-gray-300 text-gray-700 button-small rounded hover:bg-gray-400 minus-btn" onclick="decrementCount(${id}); event.stopPropagation();">-</button>
+              <span id="count-${id}" class="text-gray-800 font-semibold count-display">${count}</span>
+              <button class="bg-gray-300 text-gray-700 button-small rounded hover:bg-gray-400 plus-btn" onclick="incrementCount(${id}); event.stopPropagation();">+</button>
+              <button class="soft-orange text-white button-small rounded hover:bg-[#ea7d3a] edit-btn" onclick="openEditModal(${id}); event.stopPropagation();">Edit</button>
+              <button class="bg-red-500 text-white button-small rounded hover:bg-red-600 trash-btn" onclick="deleteIngredient(${id}); event.stopPropagation();">Remove</button>
+            </div>
+          </div>
+        `;
       }
 
-      function openEdit(id) {
-        const ingredientName = document.querySelector(
-          `#ingredient-${id} .ingredient-name`
-        ).innerText;
-        const ingredientCount = document.querySelector(
-          `#ingredient-${id} .ingredient-count`
-        ).innerText;
+      function saveIngredientToLocalStorage(ingredient) {
+        const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+        ingredients.push(ingredient);
+        localStorage.setItem("groceries", JSON.stringify(ingredients));
+      }
 
-        document.getElementById("ingredient-input").value = ingredientName;
-        document.getElementById("count-input").value = ingredientCount;
+      function loadIngredients() {
+        const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+        const ingredientList = document.getElementById("ingredient-list");
+        ingredients.forEach(ingredient => {
+          ingredientList.insertAdjacentHTML("beforeend", renderIngredient(ingredient));
+        });
+      }
 
+      function updateIngredientInLocalStorage(id, name, count, crossedOff = false) {
+        const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+        const index = ingredients.findIndex(ingredient => ingredient.id === id);
+        if (index !== -1) {
+          ingredients[index].name = name;
+          ingredients[index].count = count;
+          ingredients[index].crossedOff = crossedOff;
+          localStorage.setItem("groceries", JSON.stringify(ingredients));
+        }
+      }
+
+      function toggleCrossOff(id) {
+        const ingredientElem = document.getElementById(`ingredient-${id}`);
+        ingredientElem.classList.toggle("crossed-off");
+        ingredientElem.querySelector(".controls").classList.toggle("disabled-controls");
+
+        const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+        const index = ingredients.findIndex(ingredient => ingredient.id === id);
+        if (index !== -1) {
+          ingredients[index].crossedOff = !ingredients[index].crossedOff;
+          localStorage.setItem("groceries", JSON.stringify(ingredients));
+        }
+      }
+
+      function incrementCount(id) {
+        const countElem = document.getElementById(`count-${id}`);
+        const newCount = parseInt(countElem.innerText) + 1;
+        countElem.innerText = newCount;
+        updateCountInLocalStorage(id, newCount);
+      }
+
+      function decrementCount(id) {
+        const countElem = document.getElementById(`count-${id}`);
+        const currentCount = parseInt(countElem.innerText);
+        if (currentCount > 1) {
+          const newCount = currentCount - 1;
+          countElem.innerText = newCount;
+          updateCountInLocalStorage(id, newCount);
+        }
+      }
+
+      function updateCountInLocalStorage(id, count) {
+        const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+        const index = ingredients.findIndex(ingredient => ingredient.id === id);
+        if (index !== -1) {
+          ingredients[index].count = count;
+          localStorage.setItem("groceries", JSON.stringify(ingredients));
+        }
+      }
+
+      function openEditModal(id) {
         editMode = true;
         editId = id;
+        const ingredientName = document.querySelector(`#ingredient-${id} .ingredient-name`).innerText;
+        const ingredientCount = document.getElementById(`count-${id}`).innerText;
+
+        document.getElementById("edit-ingredient-name").value = ingredientName;
+        document.getElementById("edit-ingredient-count").value = ingredientCount;
+        document.querySelector(".sticky-checkout-button").style.zIndex = "-1";
+        document.getElementById("edit-modal").classList.remove("hidden");
+      }
+
+      function openCheckoutModal() {
+        document.querySelector(".sticky-checkout-button").style.zIndex = "-1";
+        document.getElementById("checkout-modal").classList.remove("hidden");
+      }
+
+      function closeModal() {
+        document.getElementById("edit-modal").classList.add("hidden");
+        document.getElementById("checkout-modal").classList.add("hidden");
+        document.querySelector(".sticky-checkout-button").style.zIndex = "1";
+        editMode = false;
+      }
+
+      function saveIngredient() {
+        const name = document.getElementById("edit-ingredient-name").value.trim();
+        const count = parseInt(document.getElementById("edit-ingredient-count").value);
+
+        if (!name || count < 1) {
+          alert("Please enter a valid ingredient and quantity.");
+          return;
+        }
+
+        document.querySelector(`#ingredient-${editId} .ingredient-name`).innerText = name;
+        document.getElementById(`count-${editId}`).innerText = count;
+
+        updateIngredientInLocalStorage(editId, name, count);
+        closeModal();
       }
 
       function deleteIngredient(id) {
         document.getElementById(`ingredient-${id}`).remove();
+        let ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+        ingredients = ingredients.filter(ingredient => ingredient.id !== id);
+        localStorage.setItem("groceries", JSON.stringify(ingredients));
+      }
+
+      function clearCheckedItems() {
+        let ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+        ingredients = ingredients.filter(ingredient => !ingredient.crossedOff);
+        localStorage.setItem("groceries", JSON.stringify(ingredients));
+        document.getElementById("ingredient-list").innerHTML = "";
+        loadIngredients();
+        closeModal();
       }
     </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-6">
-    <!-- Header -->
-    <div class="mb-6 text-center">
-      <h1 class="text-2xl font-semibold">Grocery Shopping List</h1>
-    </div>
-
-    <!-- Ingredient Search Section -->
-    <div class="mb-6">
-      <input
-        type="text"
-        id="ingredient-input"
-        placeholder="Enter ingredient..."
-        class="w-1/2 p-2 border border-gray-300 rounded mt-1"
-        onkeydown="if (event.key === 'Enter') addIngredient()"
-      />
-      <input
-        type="number"
-        id="count-input"
-        placeholder="Count"
-        class="w-1/4 p-2 border border-gray-300 rounded mt-1 ml-2"
-        min="1"
-        value="1"
-      />
-      <button
-        class="bg-green-500 text-white p-2 rounded mt-1 ml-2 hover:bg-green-600"
-        onclick="addIngredient()"
-      >
-        Add
-      </button>
+    <!-- Header with Grocery List Title -->
+    <div class="flex flex-col items-center mb-4 space-y-2">
+      <h1 class="text-3xl font-semibold">Grocery Shopping List</h1>
+      <div class="flex items-center space-x-2 w-full max-w-lg">
+        <input
+          type="text"
+          id="ingredient-input"
+          placeholder="Enter Ingredient..."
+          class="w-3/5 p-2 border border-gray-300 rounded text-sm"
+          onkeydown="if (event.key === 'Enter') addIngredient();"
+        />
+        <input
+          type="number"
+          id="count-input"
+          min="1"
+          value="1"
+          class="w-1/5 p-2 border border-gray-300 rounded text-sm"
+          onkeydown="if (event.key === 'Enter') addIngredient();"
+        />
+        <button
+          class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
+          onclick="addIngredient()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Horizontal Bar -->
-    <hr class="border-t-2 border-gray-300 my-4" />
+    <hr class="border-t-2 border-gray-300 my-4 custom-hr" />
 
     <!-- Added Ingredients List -->
     <div id="ingredient-list" class="space-y-2">
       <!-- Dynamically added ingredients will appear here -->
     </div>
+
+    <!-- Edit Ingredient Modal -->
+    <div id="edit-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-80">
+        <h2 class="edit-modal-title">Edit Ingredient</h2>
+        <div class="mb-4">
+          <label for="edit-ingredient-name" class="block text-gray-700">Ingredient Name:</label>
+          <input type="text" id="edit-ingredient-name" class="w-full p-2 border border-gray-300 rounded mt-1" />
+        </div>
+        <div class="mb-4">
+          <label for="edit-ingredient-count" class="block text-gray-700">Count:</label>
+          <input type="number" id="edit-ingredient-count" class="w-full p-2 border border-gray-300 rounded mt-1" min="1" />
+        </div>
+        <div class="modal-content-buttons">
+          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeModal()">Cancel</button>
+          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="saveIngredient()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-80">
+        <h2 class="text-lg font-semibold text-center mb-4">Are you sure you're ready to checkout?</h2>
+        <div class="modal-content-buttons">
+          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeModal()">Cancel</button>
+          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="clearCheckedItems()">Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Checkout Button -->
+    <button class="sticky-checkout-button mt-4" onclick="openCheckoutModal()">Checkout Groceries</button>
 
     <!-- Footer Navigation Bar -->
     <div class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black">
