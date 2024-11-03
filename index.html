@@ -12,7 +12,7 @@
     <!-- Set Global Font to Courier New -->
     <style>
       body {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: "Courier New", Courier, monospace;
       }
       .custom-hr {
         border-top: 2px solid #333;
@@ -20,7 +20,9 @@
         margin-bottom: 1rem;
       }
       #ingredient-list {
-        max-height: calc(100vh - 340px); /* Adjusted to sit above the button with extra space */
+        max-height: calc(
+          100vh - 340px
+        ); /* Adjusted to sit above the button with extra space */
         overflow-y: auto;
         padding-bottom: 1rem; /* Adds extra space to avoid hiding last item */
       }
@@ -118,7 +120,8 @@
       .recipe-title {
         text-decoration: underline;
       }
-      .modal-content h3, .modal-content ul {
+      .modal-content h3,
+      .modal-content ul {
         text-align: left;
       }
       .no-recipes-message {
@@ -141,9 +144,21 @@
       .full-width-button-centered:hover {
         background-color: #f66d32;
       }
+      @keyframes fadeOut {
+        0% {
+          opacity: 1;
+        }
+        80% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
     </style>
 
-    <script src="./javascript/recipes.js"></script> <!-- Link to your recipes.js file -->
+    <script src="./javascript/recipes.js"></script>
+    <!-- Link to your recipes.js file -->
 
     <script>
       const potentialIngredients = new Set(
@@ -208,7 +223,7 @@
 
       function searchRecipes() {
         const matchingRecipes = recipes.filter((recipe) => {
-          const matchingIngredients = recipe.ingredients.filter((ingredient) => 
+          const matchingIngredients = recipe.ingredients.filter((ingredient) =>
             potentialIngredients.has(ingredient.toLowerCase())
           );
           return matchingIngredients.length / recipe.ingredients.length >= 0.6;
@@ -217,10 +232,11 @@
         const ingredientList = document.getElementById("ingredient-list");
         ingredientList.innerHTML = "";
 
-        document.getElementById("ingredient-input-container").style.display = "none";
+        document.getElementById("ingredient-input-container").style.display =
+          "none";
         document.querySelector(".horizontal-bar").style.marginTop = "0";
         document.querySelector(".sticky-button").style.display = "none";
-        
+
         if (matchingRecipes.length > 0) {
           document.querySelector(".button-container").style.display = "flex";
           const headerHtml = `<div class="potential-recipes-header">Potential Recipes:</div>`;
@@ -237,38 +253,109 @@
           });
         } else {
           document.querySelector(".button-container").style.display = "none";
-          document.querySelector(".full-width-button-centered").style.display = "block";
-          ingredientList.innerHTML = '<div class="no-recipes-message">No matching recipes found.</div>';
+          document.querySelector(".full-width-button-centered").style.display =
+            "block";
+          ingredientList.innerHTML =
+            '<div class="no-recipes-message">No matching recipes found.</div>';
         }
       }
 
       function selectRecipe(recipeId) {
         // Unhighlight the previously selected recipe
         if (selectedRecipeId !== null) {
-          document.getElementById(`recipe-${selectedRecipeId}`).classList.remove("highlighted");
+          document
+            .getElementById(`recipe-${selectedRecipeId}`)
+            .classList.remove("highlighted");
         }
         // Highlight the new selected recipe
         selectedRecipeId = recipeId;
-        document.getElementById(`recipe-${selectedRecipeId}`).classList.add("highlighted");
+        document
+          .getElementById(`recipe-${selectedRecipeId}`)
+          .classList.add("highlighted");
+      }
+
+      function showNotification(message, type = "success") {
+        const notification = document.createElement("div");
+        notification.className = `notification ${type}`;
+        notification.innerText = message;
+
+        // Styling for the notification
+        Object.assign(notification.style, {
+          position: "fixed",
+          top: "10px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          backgroundColor: type === "success" ? "#38a169" : "#e53e3e",
+          color: "#fff",
+          padding: "10px 20px",
+          borderRadius: "8px",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          zIndex: 1000,
+          fontSize: "1rem",
+          textAlign: "center",
+          animation: "fadeOut 3s forwards",
+        });
+
+        document.body.appendChild(notification);
+
+        // Remove the notification after it fades out
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
       }
 
       function cookRecipe() {
         if (selectedRecipeId !== null) {
-          // Clear ingredients and reset the view
+          const recipe = recipes[selectedRecipeId]; // Get the selected recipe's data
+
+          // Load inventory items from local storage
+          let inventoryItems =
+            JSON.parse(localStorage.getItem("ingredients")) || [];
+
+          // Loop through the recipe's ingredients and update inventory accordingly
+          recipe.ingredients.forEach((recipeIngredient) => {
+            const inventoryIndex = inventoryItems.findIndex(
+              (item) =>
+                item.name.toLowerCase() === recipeIngredient.toLowerCase()
+            );
+
+            if (inventoryIndex !== -1) {
+              // If the ingredient is found in the inventory, reduce the count
+              inventoryItems[inventoryIndex].count -= 1; // Decrease count by 1
+
+              // Remove the item if the count reaches 0 or below
+              if (inventoryItems[inventoryIndex].count < 1) {
+                inventoryItems.splice(inventoryIndex, 1);
+              }
+            }
+          });
+
+          // Save updated inventory to local storage
+          localStorage.setItem("ingredients", JSON.stringify(inventoryItems));
+
+          // Clear potential ingredients and reset the view
           potentialIngredients.clear();
           saveIngredients();
           returnToIngredients();
+
+          // Show success notification
+          showNotification(
+            `Recipe "${recipe.name}" has been cooked! Inventory updated.`
+          );
         } else {
-          alert("Please select a recipe before cooking.");
+          // Show error notification
+          showNotification("Please select a recipe before cooking.", "error");
         }
       }
 
       function returnToIngredients() {
-        document.getElementById("ingredient-input-container").style.display = "flex";
+        document.getElementById("ingredient-input-container").style.display =
+          "flex";
         document.querySelector(".horizontal-bar").style.marginTop = "1rem";
         document.querySelector(".sticky-button").style.display = "block";
         document.querySelector(".button-container").style.display = "none";
-        document.querySelector(".full-width-button-centered").style.display = "none";
+        document.querySelector(".full-width-button-centered").style.display =
+          "none";
         document.getElementById("ingredient-list").innerHTML = "";
         loadIngredients();
         selectedRecipeId = null; // Reset selected recipe
@@ -281,14 +368,22 @@
           const modalContent = document.getElementById("modalContent");
 
           modalContent.innerHTML = `
-            <h2 class="text-2xl font-semibold mb-4 recipe-title">${recipe.name}</h2>
+            <h2 class="text-2xl font-semibold mb-4 recipe-title">${
+              recipe.name
+            }</h2>
             <h3 class="text-xl font-semibold mb-2">Ingredients:</h3>
             <ul class="list-disc list-inside text-left mb-4">
-              ${recipe.ingredients.map((ingredient) => `<li>${ingredient}</li>`).join('')}
+              ${recipe.ingredients
+                .map((ingredient) => `<li>${ingredient}</li>`)
+                .join("")}
             </ul>
             <h3 class="text-xl font-semibold mb-2">Dietary Information:</h3>
             <ul class="list-disc list-inside text-left">
-              ${recipe.dietary.length > 0 ? recipe.dietary.map((diet) => `<li>${diet}</li>`).join('') : '<li>None</li>'}
+              ${
+                recipe.dietary.length > 0
+                  ? recipe.dietary.map((diet) => `<li>${diet}</li>`).join("")
+                  : "<li>None</li>"
+              }
             </ul>
             <button class="close-button" onclick="closeModal()">Close</button>
           `;
@@ -318,8 +413,19 @@
         class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
         onclick="addIngredient()"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
       </button>
     </div>
@@ -331,42 +437,76 @@
         <!-- Dynamically added ingredients or recipe results will appear here -->
       </div>
 
-      <button class="sticky-button mt-4 w-full" onclick="searchRecipes()">Search</button>
+      <button class="sticky-button mt-4 w-full" onclick="searchRecipes()">
+        Search
+      </button>
 
-      <div class="button-container" style="display: none;">
-        <button class="return-button" onclick="returnToIngredients()">Return</button>
+      <div class="button-container" style="display: none">
+        <button class="return-button" onclick="returnToIngredients()">
+          Return
+        </button>
         <button class="cook-button" onclick="cookRecipe()">Cook Recipe</button>
       </div>
 
-      <button class="full-width-button-centered" onclick="returnToIngredients()" style="display: none;">
+      <button
+        class="full-width-button-centered"
+        onclick="returnToIngredients()"
+        style="display: none"
+      >
         Return
       </button>
     </div>
 
     <!-- Modal for displaying recipe info -->
     <div id="recipeModal" class="modal" onclick="closeModal()">
-      <div class="modal-content" id="modalContent" onclick="event.stopPropagation()">
+      <div
+        class="modal-content"
+        id="modalContent"
+        onclick="event.stopPropagation()"
+      >
         <!-- Recipe info will be dynamically inserted here -->
       </div>
     </div>
 
-    <div class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black">
+    <div
+      class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black"
+    >
       <div class="grid grid-cols-3 h-full">
-        <div class="flex justify-center items-center border-r-2 border-black h-full w-full" style="background-color: #38a169;">
-          <a href="index.html" class="flex justify-center items-center w-full h-full">
+        <div
+          class="flex justify-center items-center border-r-2 border-black h-full w-full"
+          style="background-color: #38a169"
+        >
+          <a
+            href="index.html"
+            class="flex justify-center items-center w-full h-full"
+          >
             <img src="images/recipes.png" alt="Recipes" class="h-10 w-20" />
           </a>
         </div>
 
-        <div class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full">
-          <a href="inventory.html" class="flex justify-center items-center w-full h-full">
+        <div
+          class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full"
+        >
+          <a
+            href="inventory.html"
+            class="flex justify-center items-center w-full h-full"
+          >
             <img src="images/Inventory.png" alt="Inventory" class="h-10 w-11" />
           </a>
         </div>
 
-        <div class="flex justify-center items-center bg-green-400 h-full w-full">
-          <a href="grocery.html" class="flex justify-center items-center w-full h-full">
-            <img src="images/Groceries.png" alt="Grocery List" class="h-10 w-11" />
+        <div
+          class="flex justify-center items-center bg-green-400 h-full w-full"
+        >
+          <a
+            href="grocery.html"
+            class="flex justify-center items-center w-full h-full"
+          >
+            <img
+              src="images/Groceries.png"
+              alt="Grocery List"
+              class="h-10 w-11"
+            />
           </a>
         </div>
       </div>

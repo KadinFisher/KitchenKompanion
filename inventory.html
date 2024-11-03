@@ -12,7 +12,7 @@
     <!-- Set Global Font to Courier New -->
     <style>
       body {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: "Courier New", Courier, monospace;
       }
       .custom-hr {
         border-top: 2px solid #333;
@@ -53,7 +53,10 @@
         justify-content: space-evenly;
         align-items: center;
       }
-      .minus-btn, .plus-btn, .edit-btn, .trash-btn {
+      .minus-btn,
+      .plus-btn,
+      .edit-btn,
+      .trash-btn {
         width: 20%;
         text-align: center;
       }
@@ -62,8 +65,6 @@
         text-align: center;
       }
     </style>
-
-    <script src="./javascript/inventory.js"></script> <!-- Link to larger inventory list -->
 
     <script>
       let ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
@@ -87,19 +88,25 @@
           return;
         }
 
-        const existingItem = inventoryItems.find(item => item.name.toLowerCase() === name);
-        if (!existingItem) {
-          alert("This ingredient is not recognized. Please use a valid inventory item.");
-          return;
-        }
+        // Check if the ingredient already exists in the inventory
+        const existingIngredient = ingredients.find(
+          (ingredient) => ingredient.name.toLowerCase() === name
+        );
 
-        if (ingredients.some(ingredient => ingredient.name.toLowerCase() === name)) {
+        if (existingIngredient) {
           alert("This ingredient is already in the inventory.");
           return;
         }
 
         const newId = Date.now();
-        const ingredient = { id: newId, name: name, count: count, type: existingItem.type };
+        const ingredient = {
+          id: newId,
+          name: name,
+          count: count,
+          type: "Other", // Assuming a default type
+        };
+
+        // Save and display the new ingredient
         saveIngredientToLocalStorage(ingredient);
         renderIngredient(ingredient);
 
@@ -113,7 +120,8 @@
       }
 
       function loadIngredients() {
-        ingredients.forEach(ingredient => renderIngredient(ingredient));
+        document.getElementById("ingredient-list").innerHTML = "";
+        ingredients.forEach((ingredient) => renderIngredient(ingredient));
       }
 
       function renderIngredient({ id, name, count, type }) {
@@ -131,24 +139,37 @@
             </div>
           </div>
         `;
-        document.getElementById("ingredient-list").insertAdjacentHTML("afterbegin", ingredientHtml); // Insert at the top
+        document
+          .getElementById("ingredient-list")
+          .insertAdjacentHTML("afterbegin", ingredientHtml);
       }
 
       function renderCategoryOptions() {
-        document.getElementById("category-select").addEventListener("change", filterByCategory);
+        document
+          .getElementById("category-select")
+          .addEventListener("change", filterByCategory);
       }
 
       function filterByCategory(event) {
         currentCategory = event.target.value;
-        document.getElementById("ingredient-list").innerHTML = "";
-        ingredients.forEach(ingredient => renderIngredient(ingredient));
+        loadIngredients();
       }
 
       function openEditModal(id) {
         editMode = true;
         editId = id;
-        const ingredientName = document.querySelector(`#ingredient-${id} .ingredient-name`).innerText;
-        const ingredientCount = document.getElementById(`count-${id}`).innerText;
+
+        const ingredientElement = document.getElementById(`ingredient-${id}`);
+        if (!ingredientElement) {
+          console.error("Ingredient element not found");
+          return;
+        }
+
+        const ingredientName =
+          ingredientElement.querySelector(".ingredient-name").innerText;
+        const ingredientCount = document.getElementById(
+          `count-${id}`
+        ).innerText;
 
         document.getElementById("ingredient-name").value = ingredientName;
         document.getElementById("ingredient-count").value = ingredientCount;
@@ -162,27 +183,31 @@
 
       function saveIngredient() {
         const name = document.getElementById("ingredient-name").value.trim();
-        const count = parseInt(document.getElementById("ingredient-count").value);
+        const count = parseInt(
+          document.getElementById("ingredient-count").value
+        );
 
         if (!name || count < 1) {
           alert("Please enter a valid ingredient and quantity.");
           return;
         }
 
-        document.querySelector(`#ingredient-${editId} .ingredient-name`).innerText = name;
-        document.getElementById(`count-${editId}`).innerText = count;
-
-        updateIngredientInLocalStorage(editId, name, count);
-        closeModal();
-      }
-
-      function updateIngredientInLocalStorage(id, name, count) {
-        const index = ingredients.findIndex(ingredient => ingredient.id === id);
+        const index = ingredients.findIndex(
+          (ingredient) => ingredient.id === editId
+        );
         if (index !== -1) {
+          // Update ingredient in local storage
           ingredients[index].name = name;
           ingredients[index].count = count;
           localStorage.setItem("ingredients", JSON.stringify(ingredients));
+
+          // Refresh the UI
+          loadIngredients();
+        } else {
+          console.error("Ingredient not found in local storage");
         }
+
+        closeModal();
       }
 
       function incrementCount(id) {
@@ -199,11 +224,16 @@
           const newCount = currentCount - 1;
           countElem.innerText = newCount;
           updateCountInLocalStorage(id, newCount);
+        } else {
+          // Remove the ingredient if count goes to 0
+          deleteIngredient(id);
         }
       }
 
       function updateCountInLocalStorage(id, count) {
-        const index = ingredients.findIndex(ingredient => ingredient.id === id);
+        const index = ingredients.findIndex(
+          (ingredient) => ingredient.id === id
+        );
         if (index !== -1) {
           ingredients[index].count = count;
           localStorage.setItem("ingredients", JSON.stringify(ingredients));
@@ -212,7 +242,7 @@
 
       function deleteIngredient(id) {
         document.getElementById(`ingredient-${id}`).remove();
-        ingredients = ingredients.filter(ingredient => ingredient.id !== id);
+        ingredients = ingredients.filter((ingredient) => ingredient.id !== id);
         localStorage.setItem("ingredients", JSON.stringify(ingredients));
       }
     </script>
@@ -241,8 +271,19 @@
           class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
           onclick="addIngredient()"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 4v16m8-8H4"
+            />
           </svg>
         </button>
       </div>
@@ -278,41 +319,86 @@
       <div class="bg-white p-6 rounded-lg shadow-lg w-80">
         <h2 class="edit-modal-title">Edit Ingredient</h2>
         <div class="mb-4">
-          <label for="ingredient-name" class="block text-gray-700">Ingredient Name:</label>
-          <input type="text" id="ingredient-name" class="w-full p-2 border border-gray-300 rounded mt-1" />
+          <label for="ingredient-name" class="block text-gray-700"
+            >Ingredient Name:</label
+          >
+          <input
+            type="text"
+            id="ingredient-name"
+            class="w-full p-2 border border-gray-300 rounded mt-1"
+          />
         </div>
         <div class="mb-4">
-          <label for="ingredient-count" class="block text-gray-700">Count:</label>
-          <input type="number" id="ingredient-count" class="w-full p-2 border border-gray-300 rounded mt-1" min="1" />
+          <label for="ingredient-count" class="block text-gray-700"
+            >Count:</label
+          >
+          <input
+            type="number"
+            id="ingredient-count"
+            class="w-full p-2 border border-gray-300 rounded mt-1"
+            min="1"
+          />
         </div>
         <div class="flex justify-end space-x-4">
-          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeModal()">Cancel</button>
-          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="saveIngredient()">Save</button>
+          <button
+            class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+            onclick="closeModal()"
+          >
+            Cancel
+          </button>
+          <button
+            class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            onclick="saveIngredient()"
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Footer Navigation Bar -->
-    <div class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black">
+    <div
+      class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black"
+    >
       <div class="grid grid-cols-3 h-full">
         <!-- Left Section: Recipes -->
-        <div class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full">
-          <a href="index.html" class="flex justify-center items-center w-full h-full">
+        <div
+          class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full"
+        >
+          <a
+            href="index.html"
+            class="flex justify-center items-center w-full h-full"
+          >
             <img src="images/recipes.png" alt="Recipes" class="h-10 w-20" />
           </a>
         </div>
 
         <!-- Center Section: Inventory (Selected) -->
-        <div class="flex justify-center items-center border-r-2 border-black h-full w-full" style="background-color: #38a169;">
-          <a href="inventory.html" class="flex justify-center items-center w-full h-full">
+        <div
+          class="flex justify-center items-center border-r-2 border-black h-full w-full"
+          style="background-color: #38a169"
+        >
+          <a
+            href="inventory.html"
+            class="flex justify-center items-center w-full h-full"
+          >
             <img src="images/Inventory.png" alt="Inventory" class="h-10 w-11" />
           </a>
         </div>
 
         <!-- Right Section: Grocery List -->
-        <div class="flex justify-center items-center bg-green-400 h-full w-full">
-          <a href="grocery.html" class="flex justify-center items-center w-full h-full">
-            <img src="images/Groceries.png" alt="Grocery List" class="h-10 w-11" />
+        <div
+          class="flex justify-center items-center bg-green-400 h-full w-full"
+        >
+          <a
+            href="grocery.html"
+            class="flex justify-center items-center w-full h-full"
+          >
+            <img
+              src="images/Groceries.png"
+              alt="Grocery List"
+              class="h-10 w-11"
+            />
           </a>
         </div>
       </div>
