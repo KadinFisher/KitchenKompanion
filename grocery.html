@@ -150,6 +150,14 @@
       .undo-button:hover {
         background-color: #ef4444;
       }
+      #keyboard-image {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        display: none; /* Hidden by default */
+        z-index: 1000;
+      }
     </style>
 
     <script>
@@ -498,6 +506,20 @@
         localStorage.setItem("groceries", JSON.stringify(groceryItems));
         loadIngredients();
       }
+      document.addEventListener("DOMContentLoaded", () => {
+        const ingredientInput = document.getElementById("ingredient-input");
+        const keyboardImage = document.getElementById("keyboard-image");
+
+        // Show the keyboard image when the input is focused
+        ingredientInput.addEventListener("focus", () => {
+          keyboardImage.style.display = "block";
+        });
+
+        // Hide the keyboard image when the input loses focus
+        ingredientInput.addEventListener("blur", () => {
+          keyboardImage.style.display = "none";
+        });
+      });
     </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-6">
@@ -684,6 +706,8 @@
     <button class="sticky-checkout-button mt-4" onclick="openCheckoutModal()">
       Checkout Groceries
     </button>
+
+    <img src="images/keyboard.png" alt="Keyboard" id="keyboard-image" />
 
     <!-- Footer Navigation Bar -->
     <div

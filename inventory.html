@@ -64,6 +64,14 @@
         width: 10%;
         text-align: center;
       }
+      #keyboard-image {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        display: none; /* Hidden by default */
+        z-index: 1000;
+      }
     </style>
 
     <script>
@@ -245,6 +253,20 @@
         ingredients = ingredients.filter((ingredient) => ingredient.id !== id);
         localStorage.setItem("ingredients", JSON.stringify(ingredients));
       }
+      document.addEventListener("DOMContentLoaded", () => {
+        const ingredientInput = document.getElementById("ingredient-input");
+        const keyboardImage = document.getElementById("keyboard-image");
+
+        // Show the keyboard image when the input is focused
+        ingredientInput.addEventListener("focus", () => {
+          keyboardImage.style.display = "block";
+        });
+
+        // Hide the keyboard image when the input loses focus
+        ingredientInput.addEventListener("blur", () => {
+          keyboardImage.style.display = "none";
+        });
+      });
     </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-6">
@@ -355,7 +377,7 @@
         </div>
       </div>
     </div>
-
+    <img src="images/keyboard.png" alt="Keyboard" id="keyboard-image" />
     <!-- Footer Navigation Bar -->
     <div
       class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black"
