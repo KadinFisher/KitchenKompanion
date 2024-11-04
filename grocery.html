@@ -161,6 +161,10 @@
         overflow-y: auto;
         padding: 1rem 0; /* Optional: add padding for a better look */
       }
+      .center-container {
+        display: flex;
+        justify-content: center;
+      }
     </style>
 
     <script>
@@ -192,10 +196,10 @@
 
           if (editMode && editId) {
             document.querySelector(
-              `#ingredient-${editId} .ingredient-name`
+              `#ingredient-${CSS.escape(editId)} .ingredient-name`
             ).innerText = ingredientValue;
             document.querySelector(
-              `#ingredient-${editId} .count-display`
+              `#ingredient-${CSS.escape(editId)} .count-display`
             ).innerText = countValue;
             updateIngredientInLocalStorage(editId, ingredientValue, countValue);
           } else {
@@ -324,7 +328,7 @@
 
         // Ensure ingredientName and ingredientCount are correctly fetched.
         const ingredientNameElem = document.querySelector(
-          `#ingredient-${id} .ingredient-name`
+          `#ingredient-${CSS.escape(id)} .ingredient-name`
         );
         const ingredientCountElem = document.getElementById(`count-${id}`);
 
@@ -534,52 +538,55 @@
     </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-6">
-    <!-- Header with Grocery List Title and Recipe Search Button -->
-    <div class="flex justify-between mb-4">
+    <!-- Centered Header with Grocery List Title and Recipe Search Button -->
+    <div class="center-container mb-4">
       <h1 class="text-3xl font-semibold">Grocery Shopping List</h1>
       <button
-        class="bg-blue-500 text-white p-2 rounded-full shadow hover:bg-blue-600"
+        class="bg-blue-500 text-white p-2 rounded-full shadow hover:bg-blue-600 ml-4"
         onclick="openRecipeSearch()"
       >
         Search Recipes
       </button>
     </div>
 
-    <div class="flex items-center space-x-2 w-full max-w-lg mb-4">
-      <input
-        type="text"
-        id="ingredient-input"
-        placeholder="Enter Ingredient..."
-        class="w-3/5 p-2 border border-gray-300 rounded text-sm"
-        onkeydown="if (event.key === 'Enter') addIngredient();"
-      />
-      <input
-        type="number"
-        id="count-input"
-        min="1"
-        value="1"
-        class="w-1/5 p-2 border border-gray-300 rounded text-sm"
-        onkeydown="if (event.key === 'Enter') addIngredient();"
-      />
-      <button
-        class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
-        onclick="addIngredient()"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
+    <!-- Centered Search Bar -->
+    <div class="center-container mb-4">
+      <div class="flex items-center space-x-2 w-full max-w-lg">
+        <input
+          type="text"
+          id="ingredient-input"
+          placeholder="Enter Ingredient..."
+          class="w-3/5 p-2 border border-gray-300 rounded text-sm"
+          onkeydown="if (event.key === 'Enter') addIngredient();"
+        />
+        <input
+          type="number"
+          id="count-input"
+          min="1"
+          value="1"
+          class="w-1/5 p-2 border border-gray-300 rounded text-sm"
+          onkeydown="if (event.key === 'Enter') addIngredient();"
+        />
+        <button
+          class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
+          onclick="addIngredient()"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Horizontal Bar -->
