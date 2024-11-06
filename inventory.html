@@ -182,12 +182,10 @@
 
       function decrementCount(id) {
         const item = selectedIngredients.find((item) => item.id === id);
-        if (item && item.count > 1) {
+        if (item && item.count > 1) { // Prevent decrementing below 1
           item.count -= 1;
           localStorage.setItem("selectedIngredients", JSON.stringify(selectedIngredients));
           document.getElementById(`count-${id}`).innerText = item.count;
-        } else if (item) {
-          deleteIngredient(id);
         }
       }
 
