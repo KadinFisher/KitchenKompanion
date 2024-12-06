@@ -71,10 +71,9 @@
       }
     </style>
 
+    <script src="./javascript/inventory.js"></script>
     <script>
-      let ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
-      let editMode = false;
-      let editId = null;
+      let selectedIngredients = JSON.parse(localStorage.getItem("selectedIngredients")) || [];
       let currentCategory = "All";
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -83,55 +82,57 @@
       });
 
       function addIngredient() {
-        const ingredientInput = document.getElementById("ingredient-input");
-        const quantityInput = document.getElementById("quantity-input");
-        const name = ingredientInput.value.trim().toLowerCase();
-        const count = parseInt(quantityInput.value) || 1;
+        const ingredientInput = document.getElementById("ingredient-input").value.trim().toLowerCase();
+        const quantityInput = parseInt(document.getElementById("quantity-input").value) || 1;
 
-        if (!name || count < 1) {
+        if (!ingredientInput || quantityInput < 1) {
           alert("Please enter a valid ingredient and quantity.");
           return;
         }
 
-        // Check if the ingredient already exists in the inventory
-        const existingIngredient = ingredients.find(
-          (ingredient) => ingredient.name.toLowerCase() === name
+        const inventoryItem = inventoryItems.find(
+          (item) => item.name.toLowerCase() === ingredientInput
         );
 
-        if (existingIngredient) {
+        if (!inventoryItem) {
+          alert("Ingredient not found in the predefined list.");
+          return;
+        }
+
+        const existingItem = selectedIngredients.find(
+          (item) => item.name === inventoryItem.name
+        );
+
+        if (existingItem) {
           alert("This ingredient is already in the inventory.");
           return;
         }
 
-        const newId = Date.now();
-        const ingredient = {
-          id: newId,
-          name: name,
-          count: count,
-          type: "Other", // Assuming a default type
+        const newItem = {
+          ...inventoryItem,
+          id: Date.now(),
+          count: quantityInput,
         };
 
-        // Save and display the new ingredient
-        saveIngredientToLocalStorage(ingredient);
-        renderIngredient(ingredient);
+        selectedIngredients.push(newItem);
+        localStorage.setItem("selectedIngredients", JSON.stringify(selectedIngredients));
+        loadIngredients();
 
-        ingredientInput.value = "";
-        quantityInput.value = 1;
-      }
-
-      function saveIngredientToLocalStorage(ingredient) {
-        ingredients.push(ingredient);
-        localStorage.setItem("ingredients", JSON.stringify(ingredients));
+        document.getElementById("ingredient-input").value = "";
+        document.getElementById("quantity-input").value = 1;
       }
 
       function loadIngredients() {
         document.getElementById("ingredient-list").innerHTML = "";
-        ingredients.forEach((ingredient) => renderIngredient(ingredient));
+        selectedIngredients
+          .filter(
+            (item) =>
+              currentCategory === "All" || item.type === currentCategory
+          )
+          .forEach((ingredient) => renderIngredient(ingredient));
       }
 
       function renderIngredient({ id, name, count, type }) {
-        if (currentCategory !== "All" && currentCategory !== type) return;
-
         const ingredientHtml = `
           <div id="ingredient-${id}" class="bg-white ingredient-item rounded-lg shadow">
             <span class="text-gray-800 font-medium ingredient-name">${name}</span>
@@ -146,7 +147,7 @@
         `;
         document
           .getElementById("ingredient-list")
-          .insertAdjacentHTML("afterbegin", ingredientHtml);
+          .insertAdjacentHTML("beforeend", ingredientHtml);
       }
 
       function renderCategoryOptions() {
@@ -161,52 +162,57 @@
       }
 
       function openEditModal(id) {
-        editMode = true;
-        editId = id;
+        const ingredient = selectedIngredients.find((item) => item.id === id);
+        if (!ingredient) return;
 
-        const ingredientElement = document.getElementById(`ingredient-${id}`);
-        if (!ingredientElement) {
-          console.error("Ingredient element not found");
-          return;
-        }
-
-        const ingredientName =
-          ingredientElement.querySelector(".ingredient-name").innerText;
-        const ingredientCount = document.getElementById(
-          `count-${id}`
-        ).innerText;
-
-        document.getElementById("ingredient-name").value = ingredientName;
-        document.getElementById("ingredient-count").value = ingredientCount;
+        document.getElementById("ingredient-id").value = ingredient.id; // Set ID for tracking
+        document.getElementById("ingredient-name").value = ingredient.name;
+        document.getElementById("ingredient-count").value = ingredient.count;
         document.getElementById("ingredient-modal").classList.remove("hidden");
+      }
+
+      function incrementCount(id) {
+        const item = selectedIngredients.find((item) => item.id === id);
+        if (item) {
+          item.count += 1;
+          localStorage.setItem("selectedIngredients", JSON.stringify(selectedIngredients));
+          document.getElementById(`count-${id}`).innerText = item.count;
+        }
+      }
+
+      function decrementCount(id) {
+        const item = selectedIngredients.find((item) => item.id === id);
+        if (item && item.count > 1) { // Prevent decrementing below 1
+          item.count -= 1;
+          localStorage.setItem("selectedIngredients", JSON.stringify(selectedIngredients));
+          document.getElementById(`count-${id}`).innerText = item.count;
+        }
+      }
+
+      function deleteIngredient(id) {
+        selectedIngredients = selectedIngredients.filter((item) => item.id !== id);
+        localStorage.setItem("selectedIngredients", JSON.stringify(selectedIngredients));
+        document.getElementById(`ingredient-${id}`).remove();
       }
 
       function closeModal() {
         document.getElementById("ingredient-modal").classList.add("hidden");
-        editMode = false;
       }
 
       function saveIngredient() {
         const name = document.getElementById("ingredient-name").value.trim();
-        const count = parseInt(
-          document.getElementById("ingredient-count").value
-        );
+        const count = parseInt(document.getElementById("ingredient-count").value);
 
         if (!name || count < 1) {
           alert("Please enter a valid ingredient and quantity.");
           return;
         }
 
-        const index = ingredients.findIndex(
-          (ingredient) => ingredient.id === editId
-        );
-        if (index !== -1) {
-          // Update ingredient in local storage
-          ingredients[index].name = name;
-          ingredients[index].count = count;
-          localStorage.setItem("ingredients", JSON.stringify(ingredients));
-
-          // Refresh the UI
+        const item = selectedIngredients.find((item) => item.id === parseInt(document.getElementById("ingredient-id").value));
+        if (item) {
+          item.name = name; // Update the name
+          item.count = count; // Update the count
+          localStorage.setItem("selectedIngredients", JSON.stringify(selectedIngredients));
           loadIngredients();
         } else {
           console.error("Ingredient not found in local storage");
@@ -214,56 +220,6 @@
 
         closeModal();
       }
-
-      function incrementCount(id) {
-        const countElem = document.getElementById(`count-${id}`);
-        const newCount = parseInt(countElem.innerText) + 1;
-        countElem.innerText = newCount;
-        updateCountInLocalStorage(id, newCount);
-      }
-
-      function decrementCount(id) {
-        const countElem = document.getElementById(`count-${id}`);
-        const currentCount = parseInt(countElem.innerText);
-        if (currentCount > 1) {
-          const newCount = currentCount - 1;
-          countElem.innerText = newCount;
-          updateCountInLocalStorage(id, newCount);
-        } else {
-          // Remove the ingredient if count goes to 0
-          deleteIngredient(id);
-        }
-      }
-
-      function updateCountInLocalStorage(id, count) {
-        const index = ingredients.findIndex(
-          (ingredient) => ingredient.id === id
-        );
-        if (index !== -1) {
-          ingredients[index].count = count;
-          localStorage.setItem("ingredients", JSON.stringify(ingredients));
-        }
-      }
-
-      function deleteIngredient(id) {
-        document.getElementById(`ingredient-${id}`).remove();
-        ingredients = ingredients.filter((ingredient) => ingredient.id !== id);
-        localStorage.setItem("ingredients", JSON.stringify(ingredients));
-      }
-      document.addEventListener("DOMContentLoaded", () => {
-        const ingredientInput = document.getElementById("ingredient-input");
-        const keyboardImage = document.getElementById("keyboard-image");
-
-        // Show the keyboard image when the input is focused
-        ingredientInput.addEventListener("focus", () => {
-          keyboardImage.style.display = "block";
-        });
-
-        // Hide the keyboard image when the input loses focus
-        ingredientInput.addEventListener("blur", () => {
-          keyboardImage.style.display = "none";
-        });
-      });
     </script>
   </head>
   <body class="bg-gray-100 min-h-screen p-6">
@@ -347,6 +303,7 @@
             class="w-full p-2 border border-gray-300 rounded mt-1"
           />
         </div>
+        <input type="hidden" id="ingredient-id" />
         <div class="mb-4">
           <label for="ingredient-count" class="block text-gray-700"
             >Count:</label

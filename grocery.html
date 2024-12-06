@@ -6,165 +6,37 @@
     <title>Grocery Shopping List</title>
     <link href="style.css" rel="stylesheet" />
     <script src="./javascript/recipes.js"></script>
-    <!-- Added to access recipes.js -->
-    <!-- Set Global Font to Courier New -->
+    <script src="./javascript/inventory.js"></script> <!-- Include inventory.js -->
+
     <style>
-      body {
-        font-family: "Courier New", Courier, monospace;
-      }
-      .custom-hr {
-        border-top: 2px solid #333;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-      }
-      .ingredient-item {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .controls {
-        display: flex;
-        width: 50%;
-        justify-content: space-evenly;
-        align-items: center;
-      }
-      .disabled-controls button {
-        pointer-events: none;
-        opacity: 0.5;
-      }
-      .minus-btn,
-      .plus-btn,
-      .edit-btn,
-      .trash-btn {
-        width: 20%;
-        text-align: center;
-      }
-      .count-display {
-        width: 10%;
-        text-align: center;
-      }
-      .button-small {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.85rem;
-      }
-      .soft-orange {
-        background-color: #fc8a48;
-      }
-      .soft-orange:hover {
-        background-color: #ea7d3a;
-      }
-      .edit-modal-title {
-        text-align: center;
-        font-size: 1.2rem;
-        font-weight: bold;
-        text-decoration: underline;
-        margin-bottom: 1rem;
-      }
-      .crossed-off {
-        background-color: #d1fae5;
-        position: relative;
-      }
-      .crossed-off::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 100%;
-        border-top: 2px dashed black;
-        transform: translateY(-50%);
-      }
-      .sticky-checkout-button {
-        position: sticky;
-        bottom: 5.5rem;
-        background-color: #3b82f6;
-        color: white;
-        padding: 0.75rem;
-        border-radius: 0.375rem;
-        text-align: center;
-        transition: background-color 0.2s;
-        width: 100%;
-        z-index: 1; /* Lower than modals */
-      }
-      .sticky-checkout-button:hover {
-        background-color: #2563eb;
-      }
-      #ingredient-list {
-        max-height: calc(
-          100vh - 300px
-        ); /* Increased to ensure last item is visible above button */
-        overflow-y: auto;
-        padding-bottom: 1rem;
-      }
-      .trash-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .modal-content-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-top: 1rem;
-      }
-      .modal-overlay {
-        z-index: 50;
-      }
-      .close-button {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background-color: #e3342f;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 1.5rem;
-        height: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        cursor: pointer;
-      }
-      .close-button:hover {
-        background-color: #cc1f1a;
-      }
-      .button-added {
-        background-color: white;
-        color: #10b981; /* Green */
-        border: 2px solid #10b981;
-        cursor: default;
-      }
-      .undo-button {
-        background-color: #f87171;
-        color: white;
-        border: none;
-        padding: 0.5rem;
-        border-radius: 0.375rem;
-        cursor: pointer;
-        margin-left: 0.5rem;
-      }
-      .undo-button:hover {
-        background-color: #ef4444;
-      }
-      #keyboard-image {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        display: none; /* Hidden by default */
-        z-index: 1000;
-      }
-      #recipe-results {
-        max-height: 300px; /* Adjust height as needed */
-        overflow-y: auto;
-        padding: 1rem 0; /* Optional: add padding for a better look */
-      }
-      .center-container {
-        display: flex;
-        justify-content: center;
-      }
+      /* Existing styles */
+      body { font-family: "Courier New", Courier, monospace; }
+      .custom-hr { border-top: 2px solid #333; margin-top: 1rem; margin-bottom: 1rem; }
+      .ingredient-item { padding: 0.5rem 0.75rem; font-size: 0.9rem; display: flex; align-items: center; justify-content: space-between; }
+      .controls { display: flex; width: 50%; justify-content: space-evenly; align-items: center; }
+      .disabled-controls button { pointer-events: none; opacity: 0.5; }
+      .minus-btn, .plus-btn, .edit-btn, .trash-btn { width: 20%; text-align: center; }
+      .count-display { width: 10%; text-align: center; }
+      .button-small { padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+      .soft-orange { background-color: #fc8a48; }
+      .soft-orange:hover { background-color: #ea7d3a; }
+      .edit-modal-title { text-align: center; font-size: 1.2rem; font-weight: bold; text-decoration: underline; margin-bottom: 1rem; }
+      .crossed-off { background-color: #d1fae5; position: relative; }
+      .crossed-off::after { content: ""; position: absolute; top: 50%; left: 0; width: 100%; border-top: 2px dashed black; transform: translateY(-50%); }
+      .sticky-checkout-button { position: sticky; bottom: 5.5rem; background-color: #3b82f6; color: white; padding: 0.75rem; border-radius: 0.375rem; text-align: center; transition: background-color 0.2s; width: 100%; z-index: 1; }
+      .sticky-checkout-button:hover { background-color: #2563eb; }
+      #ingredient-list { max-height: calc(100vh - 300px); overflow-y: auto; padding-bottom: 1rem; }
+      .trash-btn { display: flex; align-items: center; justify-content: center; }
+      .modal-content-buttons { display: flex; justify-content: center; gap: 1rem; margin-top: 1rem; }
+      .modal-overlay { z-index: 50; }
+      .close-button { position: absolute; top: 1rem; right: 1rem; background-color: #e3342f; color: white; border: none; border-radius: 50%; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+      .close-button:hover { background-color: #cc1f1a; }
+      .button-added { background-color: white; color: #10b981; border: 2px solid #10b981; cursor: default; }
+      .undo-button { background-color: #fc8a48; color: white; border: none; padding: 0.5rem; border-radius: 0.375rem; cursor: pointer; margin-left: 0.5rem; }
+      .undo-button:hover { background-color: #ea7d3a; }
+      #keyboard-image { position: fixed; bottom: 0; left: 0; width: 100%; display: none; z-index: 1000; }
+      #recipe-results { max-height: 300px; overflow-y: auto; padding: 1rem 0; }
+      .center-container { display: flex; justify-content: center; }
     </style>
 
     <script>
@@ -182,27 +54,23 @@
         const ingredientValue = ingredientInput.value.trim().toLowerCase();
         const countValue = parseInt(countInput.value) || 1;
 
+        const inventoryItemExists = inventoryItems.some(item => item.name.toLowerCase() === ingredientValue);
+        if (!inventoryItemExists) {
+          alert("This item is not available in the inventory.");
+          return;
+        }
+
         if (ingredientValue && countValue) {
-          const ingredients =
-            JSON.parse(localStorage.getItem("groceries")) || [];
-          const duplicate = ingredients.some(
-            (ingredient) => ingredient.name.toLowerCase() === ingredientValue
-          );
+          const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
+          const existingItem = ingredients.find(ingredient => ingredient.name.toLowerCase() === ingredientValue);
 
-          if (duplicate) {
-            alert("This item is already in the grocery list.");
-            return;
-          }
-
-          if (editMode && editId) {
-            document.querySelector(
-              `#ingredient-${CSS.escape(editId)} .ingredient-name`
-            ).innerText = ingredientValue;
-            document.querySelector(
-              `#ingredient-${CSS.escape(editId)} .count-display`
-            ).innerText = countValue;
-            updateIngredientInLocalStorage(editId, ingredientValue, countValue);
+          if (existingItem) {
+            // Increment the quantity if it already exists
+            existingItem.count += 1;
+            updateIngredientInLocalStorage(existingItem.id, existingItem.name, existingItem.count);
+            loadIngredients();
           } else {
+            // Add new ingredient if it doesn't exist
             const newId = Date.now();
             const ingredient = {
               id: newId,
@@ -213,7 +81,7 @@
             saveIngredientToLocalStorage(ingredient);
 
             const newIngredientHtml = renderIngredient(ingredient);
-            ingredientList.insertAdjacentHTML("afterbegin", newIngredientHtml); // Insert at the top
+            ingredientList.insertAdjacentHTML("afterbegin", newIngredientHtml);
           }
           ingredientInput.value = "";
           countInput.value = 1;
@@ -250,23 +118,13 @@
         const ingredientList = document.getElementById("ingredient-list");
         ingredientList.innerHTML = ""; // Clear the list before reloading
         ingredients.forEach((ingredient) => {
-          ingredientList.insertAdjacentHTML(
-            "beforeend",
-            renderIngredient(ingredient)
-          );
+          ingredientList.insertAdjacentHTML("beforeend", renderIngredient(ingredient));
         });
       }
 
-      function updateIngredientInLocalStorage(
-        id,
-        name,
-        count,
-        crossedOff = false
-      ) {
+      function updateIngredientInLocalStorage(id, name, count, crossedOff = false) {
         const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        const index = ingredients.findIndex(
-          (ingredient) => ingredient.id === id
-        );
+        const index = ingredients.findIndex(ingredient => ingredient.id === id);
         if (index !== -1) {
           ingredients[index].name = name;
           ingredients[index].count = count;
@@ -278,14 +136,10 @@
       function toggleCrossOff(id) {
         const ingredientElem = document.getElementById(`ingredient-${id}`);
         ingredientElem.classList.toggle("crossed-off");
-        ingredientElem
-          .querySelector(".controls")
-          .classList.toggle("disabled-controls");
+        ingredientElem.querySelector(".controls").classList.toggle("disabled-controls");
 
         const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        const index = ingredients.findIndex(
-          (ingredient) => ingredient.id === id
-        );
+        const index = ingredients.findIndex(ingredient => ingredient.id === id);
         if (index !== -1) {
           ingredients[index].crossedOff = !ingredients[index].crossedOff;
           localStorage.setItem("groceries", JSON.stringify(ingredients));
@@ -311,9 +165,7 @@
 
       function updateCountInLocalStorage(id, count) {
         const ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        const index = ingredients.findIndex(
-          (ingredient) => ingredient.id === id
-        );
+        const index = ingredients.findIndex(ingredient => ingredient.id === id);
         if (index !== -1) {
           ingredients[index].count = count;
           localStorage.setItem("groceries", JSON.stringify(ingredients));
@@ -321,46 +173,32 @@
       }
 
       function openEditModal(id, event) {
-        event.stopPropagation(); // This prevents triggering the parent click event.
-
+        event.stopPropagation();
         editMode = true;
         editId = id;
 
-        // Ensure ingredientName and ingredientCount are correctly fetched.
-        const ingredientNameElem = document.querySelector(
-          `#ingredient-${CSS.escape(id)} .ingredient-name`
-        );
+        const ingredientNameElem = document.querySelector(`#ingredient-${CSS.escape(id)} .ingredient-name`);
         const ingredientCountElem = document.getElementById(`count-${id}`);
 
         if (ingredientNameElem && ingredientCountElem) {
-          document.getElementById("edit-ingredient-name").value =
-            ingredientNameElem.innerText;
-          document.getElementById("edit-ingredient-count").value =
-            ingredientCountElem.innerText;
+          document.getElementById("edit-ingredient-name").value = ingredientNameElem.innerText;
+          document.getElementById("edit-ingredient-count").value = ingredientCountElem.innerText;
           document.getElementById("edit-modal").classList.remove("hidden");
         } else {
           console.error("Ingredient elements not found for editing.");
         }
       }
 
-      function openCheckoutModal() {
-        document.querySelector(".sticky-checkout-button").style.zIndex = "1";
-        document.getElementById("checkout-modal").classList.remove("hidden");
-      }
-
       function closeModal() {
         document.getElementById("edit-modal").classList.add("hidden");
         document.getElementById("checkout-modal").classList.add("hidden");
         editMode = false;
+        editId = null;
       }
 
       function saveIngredient() {
-        const name = document
-          .getElementById("edit-ingredient-name")
-          .value.trim();
-        const count = parseInt(
-          document.getElementById("edit-ingredient-count").value
-        );
+        const name = document.getElementById("edit-ingredient-name").value.trim();
+        const count = parseInt(document.getElementById("edit-ingredient-count").value);
 
         if (!name || count < 1) {
           alert("Please enter a valid ingredient and quantity.");
@@ -368,58 +206,34 @@
         }
 
         updateIngredientInLocalStorage(editId, name, count);
-        loadIngredients(); // Reload the list to reflect changes
+        loadIngredients();
         closeModal();
       }
 
       function deleteIngredient(id) {
         document.getElementById(`ingredient-${id}`).remove();
         let ingredients = JSON.parse(localStorage.getItem("groceries")) || [];
-        ingredients = ingredients.filter((ingredient) => ingredient.id !== id);
+        ingredients = ingredients.filter(ingredient => ingredient.id !== id);
         localStorage.setItem("groceries", JSON.stringify(ingredients));
+      }
+
+      function openCheckoutModal() {
+        document.querySelector(".sticky-checkout-button").style.zIndex = "1";
+        document.getElementById("checkout-modal").classList.remove("hidden");
       }
 
       function clearCheckedItems() {
         let groceryItems = JSON.parse(localStorage.getItem("groceries")) || [];
-        let checkedOutItems = groceryItems.filter((item) => item.crossedOff);
-
-        // Get current inventory items from local storage or initialize an empty array
-        let inventoryItems =
-          JSON.parse(localStorage.getItem("ingredients")) || [];
-
-        // Add or update checked-out grocery items in the inventory
-        checkedOutItems.forEach((item) => {
-          const existingItemIndex = inventoryItems.findIndex(
-            (inventoryItem) => inventoryItem.id === item.id
-          );
-
-          if (existingItemIndex !== -1) {
-            // Update the count of the existing item in the inventory
-            inventoryItems[existingItemIndex].count += item.count;
-          } else {
-            // Add a new item to the inventory
-            inventoryItems.push({ ...item }); // Copy item properties, including `id`
-          }
-        });
-
-        // Save updated inventory back to local storage
-        localStorage.setItem("ingredients", JSON.stringify(inventoryItems));
-
-        // Remove checked items from the grocery list and save
-        groceryItems = groceryItems.filter((item) => !item.crossedOff);
+        groceryItems = groceryItems.filter(item => !item.crossedOff);
         localStorage.setItem("groceries", JSON.stringify(groceryItems));
-
-        // Clear and reload the grocery list
         document.getElementById("ingredient-list").innerHTML = "";
         loadIngredients();
-        closeModal();
+        closeModal(); 
       }
 
       // Recipe Search Functionality
       function openRecipeSearch() {
-        document
-          .getElementById("recipe-search-modal")
-          .classList.remove("hidden");
+        document.getElementById("recipe-search-modal").classList.remove("hidden");
       }
 
       function closeRecipeSearch() {
@@ -430,25 +244,15 @@
       }
 
       function searchRecipes() {
-        const query = document
-          .getElementById("recipe-input")
-          .value.trim()
-          .toLowerCase();
-        const dietaryRestriction =
-          document.getElementById("dietary-filter").value;
+        const query = document.getElementById("recipe-input").value.trim().toLowerCase();
+        const dietaryRestriction = document.getElementById("dietary-filter").value;
 
-        // Filter recipes based on query and dietary restriction
         const filteredRecipes = recipes.filter((recipe) => {
-          const matchesQuery = query
-            ? recipe.name.toLowerCase().includes(query)
-            : true;
-          const matchesDietary = dietaryRestriction
-            ? recipe.dietary.includes(dietaryRestriction)
-            : true;
+          const matchesQuery = query ? recipe.name.toLowerCase().includes(query) : true;
+          const matchesDietary = dietaryRestriction ? recipe.dietary.includes(dietaryRestriction) : true;
           return matchesQuery && matchesDietary;
         });
 
-        // Display search results
         const resultsContainer = document.getElementById("recipe-results");
         resultsContainer.innerHTML = filteredRecipes.length
           ? filteredRecipes
@@ -471,29 +275,30 @@
         const addButton = document.getElementById(`add-button-${recipeIndex}`);
 
         ingredients.forEach((ingredient) => {
-          const ingredientItem = {
-            id: Date.now() + Math.random(),
-            name: ingredient,
-            count: 1,
-            crossedOff: false,
-          };
+          const groceryItems = JSON.parse(localStorage.getItem("groceries")) || [];
+          const existingItem = groceryItems.find(item => item.name.toLowerCase() === ingredient.toLowerCase());
 
-          // Save to local storage and update UI
-          saveIngredientToLocalStorage(ingredientItem);
-          const ingredientList = document.getElementById("ingredient-list");
-          ingredientList.insertAdjacentHTML(
-            "afterbegin",
-            renderIngredient(ingredientItem)
-          );
+          if (existingItem) {
+            existingItem.count += 1;
+            updateIngredientInLocalStorage(existingItem.id, existingItem.name, existingItem.count);
+          } else {
+            const ingredientItem = {
+              id: Date.now() + Math.random(),
+              name: ingredient,
+              count: 1,
+              crossedOff: false,
+            };
+            saveIngredientToLocalStorage(ingredientItem);
+            const ingredientList = document.getElementById("ingredient-list");
+            ingredientList.insertAdjacentHTML("afterbegin", renderIngredient(ingredientItem));
+          }
         });
 
-        // Update the button state
         addButton.innerText = "Ingredients Added";
         addButton.classList.remove("bg-green-500");
         addButton.classList.add("button-added");
-        addButton.onclick = null; // Disable the button
+        addButton.onclick = null;
 
-        // Add an undo button
         const undoButton = document.createElement("button");
         undoButton.className = "undo-button";
         undoButton.innerText = "Undo";
@@ -513,9 +318,14 @@
       function undoAddRecipeIngredients(ingredients) {
         let groceryItems = JSON.parse(localStorage.getItem("groceries")) || [];
         ingredients.forEach((ingredient) => {
-          groceryItems = groceryItems.filter(
-            (item) => item.name !== ingredient
-          );
+          const itemIndex = groceryItems.findIndex(item => item.name.toLowerCase() === ingredient.toLowerCase());
+          if (itemIndex !== -1) {
+            if (groceryItems[itemIndex].count > 1) {
+              groceryItems[itemIndex].count -= 1;
+            } else {
+              groceryItems.splice(itemIndex, 1);
+            }
+          }
         });
         localStorage.setItem("groceries", JSON.stringify(groceryItems));
         loadIngredients();
@@ -525,12 +335,10 @@
         const ingredientInput = document.getElementById("ingredient-input");
         const keyboardImage = document.getElementById("keyboard-image");
 
-        // Show the keyboard image when the input is focused
         ingredientInput.addEventListener("focus", () => {
           keyboardImage.style.display = "block";
         });
 
-        // Hide the keyboard image when the input loses focus
         ingredientInput.addEventListener("blur", () => {
           keyboardImage.style.display = "none";
         });
@@ -541,10 +349,7 @@
     <!-- Centered Header with Grocery List Title and Recipe Search Button -->
     <div class="center-container mb-4">
       <h1 class="text-3xl font-semibold">Grocery Shopping List</h1>
-      <button
-        class="bg-blue-500 text-white p-2 rounded-full shadow hover:bg-blue-600 ml-4"
-        onclick="openRecipeSearch()"
-      >
+      <button class="bg-blue-500 text-white p-2 rounded-full shadow hover:bg-blue-600 ml-4" onclick="openRecipeSearch()">
         Search Recipes
       </button>
     </div>
@@ -552,44 +357,16 @@
     <!-- Centered Search Bar -->
     <div class="center-container mb-4">
       <div class="flex items-center space-x-2 w-full max-w-lg">
-        <input
-          type="text"
-          id="ingredient-input"
-          placeholder="Enter Ingredient..."
-          class="w-3/5 p-2 border border-gray-300 rounded text-sm"
-          onkeydown="if (event.key === 'Enter') addIngredient();"
-        />
-        <input
-          type="number"
-          id="count-input"
-          min="1"
-          value="1"
-          class="w-1/5 p-2 border border-gray-300 rounded text-sm"
-          onkeydown="if (event.key === 'Enter') addIngredient();"
-        />
-        <button
-          class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
-          onclick="addIngredient()"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M12 4v16m8-8H4"
-            />
+        <input type="text" id="ingredient-input" placeholder="Enter Ingredient..." class="w-3/5 p-2 border border-gray-300 rounded text-sm" onkeydown="if (event.key === 'Enter') addIngredient();" />
+        <input type="number" id="count-input" min="1" value="1" class="w-1/5 p-2 border border-gray-300 rounded text-sm" onkeydown="if (event.key === 'Enter') addIngredient();" />
+        <button class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600" onclick="addIngredient()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
         </button>
       </div>
     </div>
 
-    <!-- Horizontal Bar -->
     <hr class="border-t-2 border-gray-300 my-4 custom-hr" />
 
     <!-- Added Ingredients List -->
@@ -598,27 +375,15 @@
     </div>
 
     <!-- Recipe Search Modal -->
-    <div
-      id="recipe-search-modal"
-      class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden"
-      style="z-index: 50"
-    >
+    <div id="recipe-search-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden" style="z-index: 50">
       <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative">
-        <h2 class="text-2xl font-semibold text-center mb-4">Search Recipes</h2>
+        <h2 class="text-2xl font-semibold text-center mb-4 underline">Recipes</h2>
         <div class="mb-4">
-          <input
-            type="text"
-            id="recipe-input"
-            placeholder="Enter recipe name..."
-            class="w-full p-2 border border-gray-300 rounded mt-1"
-          />
+          <input type="text" id="recipe-input" placeholder="Enter recipe name..." class="w-full p-2 border border-gray-300 rounded mt-1" />
         </div>
         <div class="mb-4">
           <label class="block text-gray-700 mb-1">Dietary Restrictions:</label>
-          <select
-            id="dietary-filter"
-            class="w-full p-2 border border-gray-300 rounded"
-          >
+          <select id="dietary-filter" class="w-full p-2 border border-gray-300 rounded">
             <option value="">None</option>
             <option value="vegetarian">Vegetarian</option>
             <option value="vegan">Vegan</option>
@@ -627,18 +392,8 @@
           </select>
         </div>
         <div class="flex justify-center space-x-4">
-          <button
-            class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
-            onclick="searchRecipes()"
-          >
-            Search
-          </button>
-          <button
-            class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-            onclick="closeRecipeSearch()"
-          >
-            Close
-          </button>
+          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="searchRecipes()">Search</button>
+          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeRecipeSearch()">Close</button>
         </div>
         <div id="recipe-results" class="mt-4">
           <!-- Recipe results will be displayed here -->
@@ -647,128 +402,57 @@
     </div>
 
     <!-- Edit Ingredient Modal -->
-    <div
-      id="edit-modal"
-      class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden"
-      style="z-index: 50"
-    >
+    <div id="edit-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden" style="z-index: 50">
       <div class="bg-white p-6 rounded-lg shadow-lg w-80">
         <h2 class="edit-modal-title">Edit Ingredient</h2>
         <div class="mb-4">
-          <label for="edit-ingredient-name" class="block text-gray-700"
-            >Ingredient Name:</label
-          >
-          <input
-            type="text"
-            id="edit-ingredient-name"
-            class="w-full p-2 border border-gray-300 rounded mt-1"
-          />
+          <label for="edit-ingredient-name" class="block text-gray-700">Ingredient Name:</label>
+          <input type="text" id="edit-ingredient-name" class="w-full p-2 border border-gray-300 rounded mt-1" />
         </div>
         <div class="mb-4">
-          <label for="edit-ingredient-count" class="block text-gray-700"
-            >Count:</label
-          >
-          <input
-            type="number"
-            id="edit-ingredient-count"
-            class="w-full p-2 border border-gray-300 rounded mt-1"
-            min="1"
-          />
+          <label for="edit-ingredient-count" class="block text-gray-700">Count:</label>
+          <input type="number" id="edit-ingredient-count" class="w-full p-2 border border-gray-300 rounded mt-1" min="1" />
         </div>
         <div class="modal-content-buttons">
-          <button
-            class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-            onclick="closeModal()"
-          >
-            Cancel
-          </button>
-          <button
-            class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
-            onclick="saveIngredient()"
-          >
-            Save
-          </button>
+          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeModal()">Cancel</button>
+          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="saveIngredient()">Save</button>
         </div>
       </div>
     </div>
 
     <!-- Checkout Modal -->
-    <div
-      id="checkout-modal"
-      class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden"
-      style="z-index: 50"
-    >
+    <div id="checkout-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden" style="z-index: 50">
       <div class="bg-white p-6 rounded-lg shadow-lg w-80">
-        <h2 class="text-lg font-semibold text-center mb-4">
-          Are you sure you're ready to checkout?
-        </h2>
+        <h2 class="text-lg font-semibold text-center mb-4">Are you sure you're ready to checkout?</h2>
         <div class="modal-content-buttons">
-          <button
-            class="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-            onclick="closeModal()"
-          >
-            Cancel
-          </button>
-          <button
-            class="bg-green-500 text-white p-2 rounded hover:bg-green-600"
-            onclick="clearCheckedItems()"
-          >
-            Continue
-          </button>
+          <button class="bg-red-500 text-white p-2 rounded hover:bg-red-600" onclick="closeModal()">Cancel</button>
+          <button class="bg-green-500 text-white p-2 rounded hover:bg-green-600" onclick="clearCheckedItems()">Continue</button>
         </div>
       </div>
     </div>
 
-    <!-- Sticky Checkout Button -->
-    <button class="sticky-checkout-button mt-4" onclick="openCheckoutModal()">
-      Checkout Groceries
-    </button>
+    <button class="sticky-checkout-button mt-4" onclick="openCheckoutModal()">Checkout Groceries</button>
 
     <img src="images/keyboard.png" alt="Keyboard" id="keyboard-image" />
 
     <!-- Footer Navigation Bar -->
-    <div
-      class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black"
-    >
+    <div class="fixed inset-x-0 bottom-0 bg-green-400 h-16 border-t-4 border-black">
       <div class="grid grid-cols-3 h-full">
-        <!-- Left Section: Recipes -->
-        <div
-          class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full"
-        >
-          <a
-            href="index.html"
-            class="flex justify-center items-center w-full h-full"
-          >
+        <div class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full">
+          <a href="index.html" class="flex justify-center items-center w-full h-full">
             <img src="images/recipes.png" alt="Recipes" class="h-10 w-20" />
           </a>
         </div>
 
-        <!-- Center Section: Inventory (Selected) -->
-        <div
-          class="flex justify-center items-center border-r-2 border-black h-full w-full"
-        >
-          <a
-            href="inventory.html"
-            class="flex justify-center items-center w-full h-full"
-          >
+        <div class="flex justify-center items-center border-r-2 border-black h-full w-full">
+          <a href="inventory.html" class="flex justify-center items-center w-full h-full">
             <img src="images/Inventory.png" alt="Inventory" class="h-10 w-11" />
           </a>
         </div>
 
-        <!-- Right Section: Grocery List -->
-        <div
-          class="flex justify-center items-center bg-green-400 h-full w-full"
-          style="background-color: #38a169"
-        >
-          <a
-            href="grocery.html"
-            class="flex justify-center items-center w-full h-full"
-          >
-            <img
-              src="images/Groceries.png"
-              alt="Grocery List"
-              class="h-10 w-11"
-            />
+        <div class="flex justify-center items-center bg-green-400 h-full w-full" style="background-color: #38a169">
+          <a href="grocery.html" class="flex justify-center items-center w-full h-full">
+            <img src="images/Groceries.png" alt="Grocery List" class="h-10 w-11" />
           </a>
         </div>
       </div>

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=640, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=640, initial-scale=1.0"/>
     <title>Recipes</title>
-    <link href="style.css" rel="stylesheet" />
+    <link href="style.css" rel="stylesheet"/>
 
     <!-- Set Global Font to Courier New -->
     <style>
@@ -152,6 +152,25 @@
           opacity: 0;
         }
       }
+      .notification {
+        position: fixed;
+        bottom: 5.5rem; /* Position above the footer */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #38a169; /* Green for success */
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        font-size: 1rem;
+        text-align: center;
+        animation: fadeOut 3s forwards;
+        display: none; /* Hidden by default */
+      }
+      .notification.error {
+        background-color: #e53e3e; /* Red for error */
+      }
       #keyboard-image {
         position: fixed;
         bottom: 0;
@@ -231,7 +250,7 @@
           const matchingIngredients = recipe.ingredients.filter((ingredient) =>
             potentialIngredients.has(ingredient.toLowerCase())
           );
-          return matchingIngredients.length / recipe.ingredients.length >= 0.6;
+          return matchingIngredients.length / recipe.ingredients.length >= 0.33;
         });
 
         const ingredientList = document.getElementById("ingredient-list");
@@ -283,32 +302,16 @@
 
       function showNotification(message, type = "success") {
         const notification = document.createElement("div");
-        notification.className = `notification ${type}`;
+        notification.className = `notification ${type === "error" ? "error" : ""}`;
         notification.innerText = message;
 
-        // Styling for the notification
-        Object.assign(notification.style, {
-          position: "fixed",
-          top: "10px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          backgroundColor: type === "success" ? "#38a169" : "#e53e3e",
-          color: "#fff",
-          padding: "10px 20px",
-          borderRadius: "8px",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-          zIndex: 1000,
-          fontSize: "1rem",
-          textAlign: "center",
-          animation: "fadeOut 3s forwards",
-        });
-
         document.body.appendChild(notification);
+        notification.style.display = "block";
 
-        // Remove the notification after it fades out
         setTimeout(() => {
+          notification.style.display = "none";
           notification.remove();
-        }, 3000);
+        }, 3000); // Hide after 3 seconds
       }
 
       function cookRecipe() {
@@ -427,7 +430,7 @@
       <input
         type="text"
         id="ingredient-input"
-        placeholder="Enter ingredient..."
+        placeholder="Enter wanted ingredient..."
         class="w-11/12 p-2 border border-gray-300 rounded text-sm"
         onkeydown="if (event.key === 'Enter') { addIngredient(); }"
       />
@@ -452,7 +455,7 @@
       </button>
     </div>
 
-    <hr class="border-t-2 border-gray-300 my-4 horizontal-bar" />
+    <hr class="horizontal-bar" style="border-top: 2px solid black;" />
 
     <div id="ingredient-container" class="space-y-2 text-lg">
       <div id="ingredient-list" class="space-y-4">
@@ -479,8 +482,11 @@
       </button>
     </div>
 
+    <!-- Notification for displaying messages -->
+    <div class="notification" id="notification"></div>
+
     <!-- Keyboard Image -->
-    <img src="images/keyboard.png" alt="Keyboard" id="keyboard-image" />
+    <img src="images/keyboard.png" alt="Keyboard" id="keyboard-image"/>
 
     <!-- Modal for displaying recipe info -->
     <div id="recipeModal" class="modal" onclick="closeModal()">
@@ -505,7 +511,7 @@
             href="index.html"
             class="flex justify-center items-center w-full h-full"
           >
-            <img src="images/recipes.png" alt="Recipes" class="h-10 w-20" />
+            <img src="images/recipes.png" alt="Recipes" class="h-10 w-20"/>
           </a>
         </div>
 
