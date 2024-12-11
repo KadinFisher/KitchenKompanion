@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recipe View</title>
+    <link href="style.css" rel="stylesheet" />
+
+    <style>
+      body {
+        font-family: "Courier New", Courier, monospace;
+        background-color: #f3f4f6;
+        min-height: 100vh;
+        padding: 2rem;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .modal-inventory {
+        color: #38a169;
+        font-weight: bold;
+        font-size: 1.2rem;
+        border: 2px solid #38a169;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background-color: #e6ffed;
+        margin-bottom: 1.5rem;
+      }
+      .modal-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: left;
+        margin-bottom: 2rem;
+      }
+      .modal-content h2 {
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+      .modal-content p {
+        margin-bottom: 1rem;
+        font-size: 1rem;
+      }
+      .close-button {
+        background-color: transparent;
+        color: #b91c1c;
+        border: none;
+        font-size: 2.5rem;
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        cursor: pointer;
+      }
+      .remove-button {
+        background-color: #f87171;
+        color: white;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        text-align: center;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: bold;
+        display: block;
+        margin: 0 auto;
+      }
+      .remove-button:hover {
+        background-color: #e63946;
+      }
+    </style>
+
+    <script>
+      function getQueryParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+          name: params.get("name") || "Pizza",
+          ingredients: `- 2 1/2 cups of all-purpose flour
+- 1 teaspoon of salt
+- 1 teaspoon of sugar
+- 1 packet (2 1/4 teaspoons) of active dry yeast
+- 1 cup of warm water (110°F or 45°C)
+- 2 tablespoons of olive oil
+- 1/2 cup of tomato sauce
+- 1 1/2 cups of shredded mozzarella cheese
+- 20 slices of pepperoni
+          `,
+          instructions:
+            params.get("instructions") ||
+            `1. Preheat oven to 475°F (245°C).\n
+2. Prepare the dough:
+- Mix flour, salt, and sugar in a large bowl.
+- Dissolve yeast in warm water, let sit for 5 minutes, then add to dry ingredients along with olive oil.
+- Knead for 8-10 minutes until smooth and elastic.
+
+3. Let the dough rise:
+- Place dough in a greased bowl, cover with a damp cloth, and let rise in a warm spot for 1 hour.
+
+4. Roll out the dough:
+- Punch down the risen dough and roll it out to fit a 12-inch pizza pan.
+
+5. Assemble the pizza:
+- Spread tomato sauce evenly over the dough.
+- Sprinkle shredded cheese evenly and add pepperoni slices on top.
+
+6. Bake:
+- Bake the pizza for 12-15 minutes until the crust is golden brown and the cheese is bubbling.
+
+7. Cool and serve:
+- Let the pizza cool for 5 minutes before slicing.`,
+        };
+      }
+
+      function removeIngredients() {
+        alert("Ingredients removed from inventory!");
+        window.location.href = "recipes.html";
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Close button at the top -->
+    <button
+      style="
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: block;
+        background-color: transparent;
+        padding-right: 1rem;
+        color: #b91c1c;
+        font-size: 2.5rem;
+        border: none;
+        cursor: pointer;
+      "
+      onclick="window.location.href='recipes.html'"
+    >
+      <b>×</b>
+    </button>
+    <div style="position: relative; padding-bottom: 1rem">
+      <!-- Inventory notice below the close button -->
+      <div
+        style="
+          margin-top: 2rem;
+          padding: 1rem;
+          border: 1px solid #38a169;
+          border-radius: 0.5rem;
+          color: #38a169;
+          font-size: 1.2rem;
+          font-weight: bold;
+          text-align: center;
+        "
+      >
+        All food items in inventory
+      </div>
+    </div>
+
+    <div class="modal-content">
+      <h2 id="recipe-name" style="font-size: 1.5rem"></h2>
+      <p style="font-size: 1.2rem; font-weight: bold">
+        <strong>Ingredients:</strong>
+      </p>
+      <pre
+        id="recipe-ingredients"
+        style="white-space: pre-wrap; font-size: 1.1rem"
+      ></pre>
+      <p style="font-size: 1.25rem; font-weight: bold">
+        <strong>Instructions:</strong>
+      </p>
+      <pre
+        id="recipe-instructions"
+        style="white-space: pre-wrap; font-size: 1.1rem"
+      ></pre>
+    </div>
+
+    <div style="display: flex; gap: 1rem; align-items: center">
+      <!-- Add Missing Items Button -->
+      <button
+        id="add-button"
+        class="add-button"
+        onclick="addMissingItemsToGroceryList()"
+        style="
+          background-color: #38a169;
+          color: white;
+          font-size: 1rem;
+          font-weight: bold;
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          border: none;
+          cursor: pointer;
+        "
+      >
+        Add missing food items to grocery list
+      </button>
+
+      <!-- Remove Items Button -->
+      <button
+        class="remove-button"
+        onclick="removeIngredients()"
+        style="
+          background-color: #e53e3e;
+          color: white;
+          font-size: 1rem;
+          font-weight: bold;
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          border: none;
+          cursor: pointer;
+        "
+      >
+        Remove food items in inventory
+      </button>
+    </div>
+
+    <!-- Popup Message -->
+    <div
+      id="popup-message"
+      style="
+        display: none;
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        border: 2px solid #38a169;
+        color: #38a169;
+        font-weight: bold;
+        padding: 10px 20px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      "
+    >
+      Food items added to grocery list
+    </div>
+
+    <script>
+      function addMissingItemsToGroceryList() {
+        // Logic to add missing items to grocery list
+        console.log("Missing food items added to grocery list.");
+
+        // Show the popup message
+        const popup = document.getElementById("popup-message");
+        popup.style.display = "block";
+
+        // Hide the popup after 3 seconds
+        setTimeout(() => {
+          popup.style.display = "none";
+        }, 3000);
+
+        // Change the button text to "Undo"
+        const addButton = document.getElementById("add-button");
+        addButton.textContent = "Undo adding food items to grocery list";
+        addButton.style.backgroundColor = "#f59e0b"; // Change to yellow
+        addButton.onclick = undoAddMissingItems;
+      }
+
+      function undoAddMissingItems() {
+        // Logic to undo adding missing items
+        console.log("Undo adding food items to grocery list.");
+
+        // Change the button text back to "Add missing food items to grocery list"
+        const addButton = document.getElementById("add-button");
+        addButton.textContent = "Add missing food items to grocery list";
+        addButton.style.backgroundColor = "#38a169"; // Change back to green
+        addButton.onclick = addMissingItemsToGroceryList;
+      }
+
+      function removeIngredients() {
+        console.log("Ingredients removed from inventory.");
+      }
+    </script>
+
+    <script>
+      const { name, ingredients, instructions } = getQueryParams();
+      document.getElementById("recipe-name").textContent = name;
+      document.getElementById("recipe-ingredients").textContent = ingredients;
+      document.getElementById("recipe-instructions").textContent = instructions;
+    </script>
+  </body>
+</html>

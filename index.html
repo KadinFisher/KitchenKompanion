@@ -1,202 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=640, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Recipes</title>
-    <link href="style.css" rel="stylesheet"/>
+    <link href="style.css" rel="stylesheet" />
 
-    <!-- Set Global Font to Courier New -->
     <style>
       body {
         font-family: "Courier New", Courier, monospace;
-      }
-      .custom-hr {
-        border-top: 2px solid #333;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-      }
-      #ingredient-list {
-        max-height: calc(
-          100vh - 340px
-        ); /* Adjusted to sit above the button with extra space */
-        overflow-y: auto;
-        padding-bottom: 1rem; /* Adds extra space to avoid hiding last item */
+        background-color: #e4e4e8;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        margin: 0;
       }
       .ingredient-item {
-        padding: 1rem;
-        font-size: 1.125rem;
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+        background-color: #ffffff;
+        border-radius: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        margin: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .ingredient-item span {
+        margin-right: 0.5rem;
+        color: #374151;
+        font-weight: bold;
       }
       .ingredient-item button {
-        height: auto;
-        padding: 0.3rem 0.6rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        background-color: transparent;
+        color: #b91c1c;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
       }
-      .highlighted {
-        background-color: #d1fae5;
-      }
-      .sticky-button {
-        position: sticky;
-        bottom: 5.5rem; /* Adjusted to sit above the footer */
-        background-color: #3b82f6;
-        color: white;
-        padding: 0.75rem;
-        border-radius: 0.375rem;
-        text-align: center;
-        transition: background-color 0.2s;
-      }
-      .sticky-button:hover {
-        background-color: #2563eb;
-      }
-      .modal {
-        position: fixed;
-        inset: 0;
-        display: none;
-        background-color: rgba(0, 0, 0, 0.6);
-        align-items: center;
-        justify-content: center;
-      }
-      .modal-content {
-        background-color: #fff;
-        padding: 2rem;
+      .recipe-container {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
         border-radius: 0.5rem;
-        max-width: 90%;
-        width: 500px;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow-y: auto;
+        flex: 1;
+        height: 60vh;
+        margin-top: 1rem;
+      }
+      .recipe-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+
+      .recipe-item.checked::after {
+        content: "✔";
+        color: #38a169;
+        font-size: 1.5rem;
+        font-weight: bold;
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+      }
+      .recipe-header-container {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      .recipe-header {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+      .allergen-filter {
+        margin-top: 0.5rem;
+        display: inline-block;
+      }
+      .recipe-count {
+        font-weight: bold;
+        color: #374151;
+        margin-top: 0.5rem;
         text-align: center;
       }
-      .close-button {
-        background-color: #f87171;
-        color: white;
-        padding: 0.75rem;
+      #ingredient-input {
+        width: calc(100% - 3rem);
+        padding: 0.5rem;
+        border: 1px solid #ccc;
         border-radius: 0.375rem;
-        width: 100%;
-        margin-top: 1.5rem;
+      }
+      .add-button {
+        background-color: #38a169;
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
         cursor: pointer;
         transition: background-color 0.2s;
       }
-      .close-button:hover {
-        background-color: #e63946;
+      .add-button:hover {
+        background-color: #2f855a;
       }
-      .button-container {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 1rem;
-        justify-content: center;
-        width: 100%;
+
+      .recipe-item {
+        display: flex; /* Align children horizontally */
+        align-items: center; /* Center items vertically */
+        justify-content: space-between; /* Space out children */
+        background-color: #e2e8f0; /* Light gray background */
+        border-radius: 0.375rem; /* Rounded corners */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        padding: 0.5rem 1rem; /* Add spacing */
+        font-size: 1rem; /* Font size */
+        color: #374151; /* Dark gray text */
+        position: relative;
+        flex-direction: column; /* Align items vertically */
       }
-      .return-button,
-      .cook-button {
-        flex: 1;
-        color: white;
-        padding: 0.75rem;
-        border-radius: 0.375rem;
-        text-align: center;
-        transition: background-color 0.2s;
+
+      .recipe-header {
+        display: flex; /* Align header horizontally */
+        align-items: center; /* Center header vertically */
+        width: 100%; /* Ensure header takes full width */
       }
-      .return-button {
-        background-color: #fc8a48;
+
+      .recipe-header h3 {
+        flex: 1; /* Take remaining space */
+        text-align: center; /* Center the recipe name */
+        font-weight: bold; /* Make the name bold */
+        margin: 0; /* Remove default margin */
       }
-      .return-button:hover {
-        background-color: #f66d32;
+
+      .recipe-ingredients {
+        font-size: 0.875rem; /* Smaller font size for ingredients */
+        margin-top: 0.5rem; /* Add spacing above */
+        color: #4b5563; /* Slightly lighter gray */
+        text-align: center; /* Center-align text */
       }
-      .cook-button {
-        background-color: #3b82f6;
+
+      .view-button {
+        background-color: #0081a7; /* Primary blue */
+        color: white; /* White text */
+        font-size: 0.875rem; /* Slightly smaller text */
+        padding: 0.5rem 0.75rem; /* Compact spacing */
+        border: none; /* Remove default border */
+        border-radius: 0.375rem; /* Smooth rounded corners */
+        cursor: pointer; /* Pointer cursor */
+        transition: background-color 0.3s, transform 0.2s; /* Smooth effects */
+        text-align: center; /* Center-align text */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
       }
-      .cook-button:hover {
-        background-color: #2563eb;
+
+      .view-button:hover {
+        background-color: #1d4ed8; /* Darker blue on hover */
+        transform: translateY(-2px); /* Slight lift on hover */
       }
-      .potential-recipes-header {
-        font-size: 1.25rem;
-        font-weight: bold;
-        color: #374151;
-        text-align: center;
-        margin-top: 1rem;
+
+      .view-button:active {
+        background-color: #1e40af; /* Even darker blue when clicked */
+        transform: translateY(0); /* Reset lift */
       }
-      .recipe-title {
-        text-decoration: underline;
+
+      .recipe-ingredients {
+        font-size: 1.1rem; /* Slightly larger font size */
+        margin-top: 0.25rem; /* Reduce spacing above */
+        color: #000000; /* Make text black */
+        text-align: center; /* Center-align text */
       }
-      .modal-content h3,
-      .modal-content ul {
-        text-align: left;
-      }
-      .no-recipes-message {
-        text-align: center;
-        font-size: 1.25rem;
-        font-weight: bold;
-        color: #374151;
-        margin: 2rem 0;
-      }
-      .full-width-button-centered {
-        background-color: #fc8a48;
-        color: white;
-        padding: 0.75rem;
-        border-radius: 0.375rem;
-        text-align: center;
-        transition: background-color 0.2s;
-        width: 100%;
-        margin-top: 1rem;
-      }
-      .full-width-button-centered:hover {
-        background-color: #f66d32;
-      }
-      @keyframes fadeOut {
-        0% {
-          opacity: 1;
-        }
-        80% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0;
-        }
-      }
-      .notification {
-        position: fixed;
-        bottom: 5.5rem; /* Position above the footer */
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #38a169; /* Green for success */
-        color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        font-size: 1rem;
-        text-align: center;
-        animation: fadeOut 3s forwards;
-        display: none; /* Hidden by default */
-      }
-      .notification.error {
-        background-color: #e53e3e; /* Red for error */
-      }
-      #keyboard-image {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%; /* Maintain full width */
-        display: none; /* Hidden by default */
-        z-index: 1000;
+      #ingredient-input::placeholder {
+        color: #3a3939; /* Dark gray */
+        opacity: 1; /* Ensure full opacity for visibility */
       }
     </style>
-
-    <script src="./javascript/recipes.js"></script>
-    <!-- Link to your recipes.js file -->
 
     <script>
       const potentialIngredients = new Set(
         JSON.parse(localStorage.getItem("potentialIngredients")) || []
       );
-      let selectedRecipeId = null;
 
-      window.addEventListener("DOMContentLoaded", () => {
-        loadIngredients();
-      });
-
-      window.addEventListener("beforeunload", () => {
-        saveIngredients();
-      });
+      const recipes = [
+        { name: "Pizza", ingredients: ["flour", "cheese", "pepperoni"] },
+        { name: "Bread", ingredients: ["flour", "water", "yeast"] },
+        { name: "Cake", ingredients: ["flour", "sugar", "eggs"] },
+        { name: "Pancakes", ingredients: ["flour", "milk", "eggs"] },
+        { name: "Doughnuts", ingredients: ["flour", "sugar", "yeast"] },
+        { name: "Waffles", ingredients: ["flour", "milk", "baking powder"] },
+        { name: "Cookies", ingredients: ["flour", "sugar", "butter"] },
+        { name: "Muffins", ingredients: ["flour", "milk", "blueberries"] },
+      ];
 
       function saveIngredients() {
         localStorage.setItem(
@@ -206,16 +194,18 @@
       }
 
       function loadIngredients() {
+        const ingredientList = document.getElementById("ingredient-list");
+        ingredientList.innerHTML = "";
         potentialIngredients.forEach((ingredient) => {
-          const ingredientList = document.getElementById("ingredient-list");
           const ingredientHtml = `
-            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 text-lg ingredient-item">
-              <span class="text-gray-800">${ingredient}</span>
-              <button class="bg-red-500 text-white rounded hover:bg-red-600 button-small" onclick="removeIngredient(this, '${ingredient}')">Remove</button>
+            <div class="ingredient-item">
+              <span>${ingredient}</span>
+              <button onclick="removeIngredient('${ingredient}')">×</button>
             </div>
           `;
           ingredientList.insertAdjacentHTML("beforeend", ingredientHtml);
         });
+        updateRecipeList();
       }
 
       function addIngredient() {
@@ -224,278 +214,154 @@
 
         if (ingredientValue && !potentialIngredients.has(ingredientValue)) {
           potentialIngredients.add(ingredientValue);
-          const ingredientList = document.getElementById("ingredient-list");
-
-          const newIngredientHtml = `
-            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 text-lg ingredient-item">
-              <span class="text-gray-800">${ingredientValue}</span>
-              <button class="bg-red-500 text-white rounded hover:bg-red-600 button-small" onclick="removeIngredient(this, '${ingredientValue}')">Remove</button>
-            </div>
-          `;
-          // Insert at the beginning of the ingredient list
-          ingredientList.insertAdjacentHTML("afterbegin", newIngredientHtml);
-          ingredientInput.value = ""; // Clear input
+          ingredientInput.value = "";
           saveIngredients();
+          loadIngredients();
         }
       }
 
-      function removeIngredient(button, ingredient) {
+      function removeIngredient(ingredient) {
         potentialIngredients.delete(ingredient);
-        button.parentElement.remove();
         saveIngredients();
+        loadIngredients();
       }
 
-      function searchRecipes() {
-        const matchingRecipes = recipes.filter((recipe) => {
-          const matchingIngredients = recipe.ingredients.filter((ingredient) =>
-            potentialIngredients.has(ingredient.toLowerCase())
-          );
-          return matchingIngredients.length / recipe.ingredients.length >= 0.33;
+      function updateRecipeList() {
+        const recipeList = document.getElementById("recipe-list");
+        const recipeCount = document.getElementById("recipe-count");
+        recipeList.innerHTML = "";
+
+        const matchingRecipes = potentialIngredients.size
+          ? recipes.filter((recipe) =>
+              recipe.ingredients.some((ingredient) =>
+                potentialIngredients.has(ingredient.toLowerCase())
+              )
+            )
+          : recipes;
+
+        recipeCount.textContent = `Matching Recipes: ${matchingRecipes.length}`;
+
+        matchingRecipes.forEach((recipe, index) => {
+          const recipeHtml = `
+          <div class="recipe-item ${index % 3 === 0 ? "checked" : ""}">
+  <div class="recipe-header">
+    <a 
+      href="recipe-view.html?name=${encodeURIComponent(
+        recipe.name
+      )}&ingredients=${encodeURIComponent(recipe.ingredients.join(", "))}" 
+      class="view-button">
+      View
+    </a>
+    <h3>${recipe.name}</h3>
+  </div>
+  <p class="recipe-ingredients">Ingredients: ${recipe.ingredients.join(
+    ", "
+  )}</p>
+</div>
+
+
+          `;
+          recipeList.insertAdjacentHTML("beforeend", recipeHtml);
         });
-
-        const ingredientList = document.getElementById("ingredient-list");
-        ingredientList.innerHTML = "";
-
-        document.getElementById("ingredient-input-container").style.display =
-          "none";
-        document.querySelector(".horizontal-bar").style.marginTop = "0";
-        document.querySelector(".sticky-button").style.display = "none";
-
-        if (matchingRecipes.length > 0) {
-          document.querySelector(".button-container").style.display = "flex";
-          const headerHtml = `<div class="potential-recipes-header">Potential Recipes:</div>`;
-          ingredientList.insertAdjacentHTML("beforeend", headerHtml);
-
-          matchingRecipes.forEach((recipe, index) => {
-            const recipeHtml = `
-              <div id="recipe-${index}" class="flex justify-between items-center bg-white p-4 rounded-lg shadow mt-2 text-lg ingredient-item" onclick="selectRecipe(${index})">
-                <span class="text-gray-800 font-semibold">${recipe.name}</span>
-                <button class="bg-blue-500 text-white rounded hover:bg-blue-600 button-small" onclick="viewRecipe('${recipe.name}'); event.stopPropagation();">View</button>
-              </div>
-            `;
-            ingredientList.insertAdjacentHTML("beforeend", recipeHtml);
-          });
-        } else {
-          document.querySelector(".button-container").style.display = "none";
-          document.querySelector(".full-width-button-centered").style.display =
-            "block";
-          ingredientList.innerHTML =
-            '<div class="no-recipes-message">No matching recipes found.</div>';
-        }
-
-        showKeyboard();
       }
 
-      function selectRecipe(recipeId) {
-        // Unhighlight the previously selected recipe
-        if (selectedRecipeId !== null) {
-          document
-            .getElementById(`recipe-${selectedRecipeId}`)
-            .classList.remove("highlighted");
-        }
-        // Highlight the new selected recipe
-        selectedRecipeId = recipeId;
+      window.addEventListener("DOMContentLoaded", () => {
+        loadIngredients();
+
         document
-          .getElementById(`recipe-${selectedRecipeId}`)
-          .classList.add("highlighted");
-      }
-
-      function showNotification(message, type = "success") {
-        const notification = document.createElement("div");
-        notification.className = `notification ${type === "error" ? "error" : ""}`;
-        notification.innerText = message;
-
-        document.body.appendChild(notification);
-        notification.style.display = "block";
-
-        setTimeout(() => {
-          notification.style.display = "none";
-          notification.remove();
-        }, 3000); // Hide after 3 seconds
-      }
-
-      function cookRecipe() {
-        if (selectedRecipeId !== null) {
-          const recipe = recipes[selectedRecipeId]; // Get the selected recipe's data
-
-          // Load inventory items from local storage
-          let inventoryItems =
-            JSON.parse(localStorage.getItem("ingredients")) || [];
-
-          // Loop through the recipe's ingredients and update inventory accordingly
-          recipe.ingredients.forEach((recipeIngredient) => {
-            const inventoryIndex = inventoryItems.findIndex(
-              (item) =>
-                item.name.toLowerCase() === recipeIngredient.toLowerCase()
-            );
-
-            if (inventoryIndex !== -1) {
-              // If the ingredient is found in the inventory, reduce the count
-              inventoryItems[inventoryIndex].count -= 1; // Decrease count by 1
-
-              // Remove the item if the count reaches 0 or below
-              if (inventoryItems[inventoryIndex].count < 1) {
-                inventoryItems.splice(inventoryIndex, 1);
-              }
+          .getElementById("ingredient-input")
+          .addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              addIngredient();
             }
           });
-
-          // Save updated inventory to local storage
-          localStorage.setItem("ingredients", JSON.stringify(inventoryItems));
-
-          // Clear potential ingredients and reset the view
-          potentialIngredients.clear();
-          saveIngredients();
-          returnToIngredients();
-
-          // Show success notification
-          showNotification(
-            `Recipe "${recipe.name}" has been cooked! Inventory updated.`
-          );
-        } else {
-          // Show error notification
-          showNotification("Please select a recipe before cooking.", "error");
-        }
-      }
-
-      function returnToIngredients() {
-        document.getElementById("ingredient-input-container").style.display =
-          "flex";
-        document.querySelector(".horizontal-bar").style.marginTop = "1rem";
-        document.querySelector(".sticky-button").style.display = "block";
-        document.querySelector(".button-container").style.display = "none";
-        document.querySelector(".full-width-button-centered").style.display =
-          "none";
-        document.getElementById("ingredient-list").innerHTML = "";
-        loadIngredients();
-        selectedRecipeId = null; // Reset selected recipe
-      }
-
-      function viewRecipe(recipeName) {
-        const recipe = recipes.find((r) => r.name === recipeName);
-        if (recipe) {
-          const modal = document.getElementById("recipeModal");
-          const modalContent = document.getElementById("modalContent");
-
-          modalContent.innerHTML = `
-            <h2 class="text-2xl font-semibold mb-4 recipe-title">${
-              recipe.name
-            }</h2>
-            <h3 class="text-xl font-semibold mb-2">Ingredients:</h3>
-            <ul class="list-disc list-inside text-left mb-4">
-              ${recipe.ingredients
-                .map((ingredient) => `<li>${ingredient}</li>`)
-                .join("")}
-            </ul>
-            <h3 class="text-xl font-semibold mb-2">Dietary Information:</h3>
-            <ul class="list-disc list-inside text-left">
-              ${
-                recipe.dietary.length > 0
-                  ? recipe.dietary.map((diet) => `<li>${diet}</li>`).join("")
-                  : "<li>None</li>"
-              }
-            </ul>
-            <button class="close-button" onclick="closeModal()">Close</button>
-          `;
-          modal.style.display = "flex";
-        }
-      }
-
-      function closeModal() {
-        document.getElementById("recipeModal").style.display = "none";
-      }
-
-      document.addEventListener("DOMContentLoaded", () => {
-        const ingredientInput = document.getElementById("ingredient-input");
-        const keyboardImage = document.getElementById("keyboard-image");
-
-        // Show the keyboard image when the input is focused
-        ingredientInput.addEventListener("focus", () => {
-          keyboardImage.style.display = "block";
-        });
-
-        // Hide the keyboard image when the input loses focus
-        ingredientInput.addEventListener("blur", () => {
-          keyboardImage.style.display = "none";
-        });
       });
     </script>
   </head>
-  <body class="bg-gray-100 min-h-screen p-4">
-    <div class="mb-4">
-      <h1 class="text-3xl font-semibold text-center">Recipes</h1>
-    </div>
+  <body>
+    <h1 class="text-3xl font-semibold text-center">Recipes</h1>
 
-    <div id="ingredient-input-container" class="mb-4 flex items-center gap-2">
+    <div class="mb-4 flex items-center gap-2">
       <input
         type="text"
+        class="font-semibold"
         id="ingredient-input"
-        placeholder="Enter wanted ingredient..."
-        class="w-11/12 p-2 border border-gray-300 rounded text-sm"
-        onkeydown="if (event.key === 'Enter') { addIngredient(); }"
+        placeholder="Search recipes with..."
       />
       <button
-        class="bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-600"
+        class="add-button font-bold"
+        style="background-color: #38a169"
         onclick="addIngredient()"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
+        Add
+      </button>
+    </div>
+
+    <div id="ingredient-list" class="flex flex-wrap">
+      <!-- Ingredient items will be dynamically inserted here -->
+    </div>
+
+    <div class="recipe-container">
+      <div class="recipe-header-container">
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+          "
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
-      </button>
-    </div>
+          <h2
+            class="recipe-header"
+            style="
+              display: block;
+              text-align: right;
+              margin: 0 auto;
+              font-weight: bold;
+            "
+          >
+            Matching Recipes
+          </h2>
+          <span style="color: #38a169; font-size: 1rem; font-weight: bold">
+            (✔ means all food items are in inventory)
+          </span>
+        </div>
 
-    <hr class="horizontal-bar" style="border-top: 2px solid black;" />
-
-    <div id="ingredient-container" class="space-y-2 text-lg">
-      <div id="ingredient-list" class="space-y-4">
-        <!-- Dynamically added ingredients or recipe results will appear here -->
+        <div
+          class="filter-and-count"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+          "
+        >
+          <div
+            class="allergen-filter font-semibold"
+            style="display: inline-block"
+          >
+            <label for="allergen-filter" style="margin-right: 0.5rem"
+              >Filter by allergen:</label
+            >
+            <select id="allergen-filter" class="font-bold">
+              <option value=""><b>None</b></option>
+              <option value="nuts"><b>Nuts</b></option>
+              <option value="dairy"><b>Dairy</b></option>
+              <option value="gluten"><b>Gluten</b></option>
+            </select>
+          </div>
+          <div
+            id="recipe-count"
+            class="recipe-count"
+            style="font-size: 1rem; color: #374151; font-weight: bold"
+          >
+            Matching Recipes: 0
+          </div>
+        </div>
       </div>
 
-      <button class="sticky-button mt-4 w-full" onclick="searchRecipes()">
-        Search
-      </button>
-
-      <div class="button-container" style="display: none">
-        <button class="return-button" onclick="returnToIngredients()">
-          Return
-        </button>
-        <button class="cook-button" onclick="cookRecipe()">Cook Recipe</button>
-      </div>
-
-      <button
-        class="full-width-button-centered"
-        onclick="returnToIngredients()"
-        style="display: none"
-      >
-        Return
-      </button>
-    </div>
-
-    <!-- Notification for displaying messages -->
-    <div class="notification" id="notification"></div>
-
-    <!-- Keyboard Image -->
-    <img src="images/keyboard.png" alt="Keyboard" id="keyboard-image"/>
-
-    <!-- Modal for displaying recipe info -->
-    <div id="recipeModal" class="modal" onclick="closeModal()">
-      <div
-        class="modal-content"
-        id="modalContent"
-        onclick="event.stopPropagation()"
-      >
-        <!-- Recipe info will be dynamically inserted here -->
+      <div id="recipe-list" class="recipe-list">
+        <!-- Recipe items will be dynamically inserted here -->
       </div>
     </div>
 
@@ -504,40 +370,44 @@
     >
       <div class="grid grid-cols-3 h-full">
         <div
+          class="flex justify-center items-center bg-green-700 border-r-2 border-black h-full w-full"
+        >
+          <a
+            href="index.html"
+            class="flex flex-col justify-center items-center w-full h-full"
+          >
+            <img src="images/recipes.png" alt="Recipes" class="h-10 w-20" />
+            <span><b>Recipes</b></span>
+          </a>
+        </div>
+
+        <div
           class="flex justify-center items-center border-r-2 border-black h-full w-full"
           style="background-color: #38a169"
         >
           <a
-            href="index.html"
-            class="flex justify-center items-center w-full h-full"
-          >
-            <img src="images/recipes.png" alt="Recipes" class="h-10 w-20"/>
-          </a>
-        </div>
-
-        <div
-          class="flex justify-center items-center bg-green-400 border-r-2 border-black h-full w-full"
-        >
-          <a
             href="inventory.html"
-            class="flex justify-center items-center w-full h-full"
+            class="flex flex-col justify-center items-center w-full h-full"
           >
             <img src="images/Inventory.png" alt="Inventory" class="h-10 w-11" />
+            <span><b>Inventory</b></span>
           </a>
         </div>
 
         <div
-          class="flex justify-center items-center bg-green-400 h-full w-full"
+          class="flex justify-center items-center bg-green-700 h-full w-full"
+          style="background-color: #38a169"
         >
           <a
             href="grocery.html"
-            class="flex justify-center items-center w-full h-full"
+            class="flex flex-col justify-center items-center w-full h-full"
           >
             <img
               src="images/Groceries.png"
               alt="Grocery List"
               class="h-10 w-11"
             />
+            <span><b>Grocery List</b></span>
           </a>
         </div>
       </div>
